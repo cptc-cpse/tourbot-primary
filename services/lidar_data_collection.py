@@ -1,3 +1,4 @@
+import os
 import serial
 import time
 from collections.abc import Iterable
@@ -8,7 +9,10 @@ import communication.mqtt_topics as topics
 from models.message import Message
 from models.lidar_point import LidarPoint
 
-PORT = "COM3"
+PORT = os.environ.get(
+    "LIDAR_PORT",
+    "COM3" if os.name == "nt" else "/dev/ttyUSB0",
+)
 BAUD = 230400
 PACKET_SIZE = 47  # 2-byte header + 45 bytes from the tutorial
 SLEEP_INTERVAL = 1  # Time to wait between reads, in seconds
