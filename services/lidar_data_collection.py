@@ -11,7 +11,7 @@ from models.lidar_point import LidarPoint
 PORT = "COM3"
 BAUD = 230400
 PACKET_SIZE = 47  # 2-byte header + 45 bytes from the tutorial
-SLEEP_INTERVAL = 0.1  # Time to wait between reads, in seconds
+SLEEP_INTERVAL = 1  # Time to wait between reads, in seconds
 TOPIC = topics.LIDAR_TOPIC
 
 def crc8(data: bytes) -> int:

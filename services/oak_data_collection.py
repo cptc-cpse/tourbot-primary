@@ -21,6 +21,7 @@ POSE_TOPIC = topics.POSE_TOPIC
 OCCUPANCY_GRID_TOPIC = topics.OCCUPANCY_GRID_TOPIC
 OBSTACLE_POINT_CLOUD_TOPIC = topics.OBSTACLE_POINT_CLOUD_TOPIC
 GROUND_POINT_CLOUD_TOPIC = topics.GROUND_POINT_CLOUD_TOPIC
+PUBLISH_INTERVAL = 1.0 
 
 
 def stream_data() -> None:
@@ -87,12 +88,18 @@ class MqttDataNode(dai.node.ThreadedHostNode):
 
     def run(self) -> None:
         with Client(qos=0, retain=False, process_id="oak_data_collection") as client:
+            last_publish_time = 0.0
             while self.mainLoop():
                 pose = self.inputPose.get()
                 if pose is None:
                     continue
                 if not isinstance(pose, dai.TransformData):
                     raise TypeError(f"Expected TransformData, received {type(pose).__name__}")
+
+                current_time = time.monotonic()
+                if current_time - last_publish_time < PUBLISH_INTERVAL:
+                    continue
+                last_publish_time = current_time
                 self._publish_pose(client, pose)
 
                 grid = self.inputGrid.tryGet()
