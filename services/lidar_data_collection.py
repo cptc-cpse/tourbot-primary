@@ -1,8 +1,10 @@
 import serial
 import time
+from collections.abc import Iterable
 from typing import NoReturn
 
 from communication.mqtt_client import Client
+import communication.mqtt_topics as topics
 from models.message import Message
 from models.lidar_point import LidarPoint
 
@@ -10,7 +12,7 @@ PORT = "COM3"
 BAUD = 230400
 PACKET_SIZE = 47  # 2-byte header + 45 bytes from the tutorial
 SLEEP_INTERVAL = 0.1  # Time to wait between reads, in seconds
-TOPIC = "tourbot/v1/sensors/lidar/scan"
+TOPIC = topics.LIDAR_TOPIC
 
 def crc8(data: bytes) -> int:
     # Polynomial and initialization match the tutorial's CRC table.
@@ -41,9 +43,36 @@ def decode_packet(packet: bytes) -> list[LidarPoint]:
     return points
 
 
+class ScanAccumulator:
+    """Collect lidar points and emit a scan at each full rotation."""
+
+    def __init__(self) -> None:
+        self._points: list[LidarPoint] = []
+        self._previous_angle: float | None = None
+        self._started = False
+
+    def add(self, points: Iterable[LidarPoint]) -> list[list[LidarPoint]]:
+        completed_scans = []
+        for point in points:
+            if (
+                self._previous_angle is not None
+                and point.angle_deg < self._previous_angle
+            ):
+                if self._started:
+                    completed_scans.append(self._points)
+                self._started = True
+                self._points = []
+
+            self._points.append(point)
+            self._previous_angle = point.angle_deg
+
+        return completed_scans
+
+
 def stream_data() -> NoReturn:
     publisher = Client(qos=0, retain=False, process_id="lidar_data_collection")
     buffer = bytearray()
+    scan_accumulator = ScanAccumulator()
 
     with serial.Serial(PORT, BAUD, timeout=0.1) as lidar:
         print(f"Reading from {PORT}; press Ctrl+C to stop.")
@@ -69,6 +98,7 @@ def stream_data() -> NoReturn:
 
                 del buffer[:PACKET_SIZE]
                 points = decode_packet(packet)
-                message = Message(points)
-                publisher.publish(TOPIC, message.to_json())
-                time.sleep(SLEEP_INTERVAL)
+                for scan in scan_accumulator.add(points):
+                    message = Message(scan)
+                    publisher.publish(TOPIC, message.to_json())
+                    time.sleep(SLEEP_INTERVAL)

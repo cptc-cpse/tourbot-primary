@@ -1,0 +1,7 @@
+LIDAR_TOPIC = "tourbot/v1/sensors/lidar/scan"
+OAK_TOPIC = "tourbot/v1/sensors/oak/scan"
+POSE_TOPIC = "tourbot/v1/sensors/oak/pose"
+OCCUPANCY_GRID_TOPIC = "tourbot/v1/maps/oak/occupancy_grid"
+OBSTACLE_POINT_CLOUD_TOPIC = "tourbot/v1/sensors/oak/obstacle_point_cloud"
+GROUND_POINT_CLOUD_TOPIC = "tourbot/v1/sensors/oak/ground_point_cloud"
+MAP_TOPIC = "tourbot/v1/maps/snapshot"

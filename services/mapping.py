@@ -1,9 +1,10 @@
 from models.message import Message
 from communication.mqtt_client import Client
+import communication.mqtt_topics as topics
 
-LIDAR_TOPIC = "tourbot/v1/sensors/lidar/scan"
-OAK_TOPIC = "tourbot/v1/sensors/oak/scan"
-MAP_TOPIC = "tourbot/v1/maps/snapshot"
+LIDAR_TOPIC = topics.LIDAR_TOPIC
+OAK_TOPIC = topics.OAK_TOPIC
+MAP_TOPIC = topics.MAP_TOPIC
 METERS_PER_INDEX = .1 
 MAP_WIDTH_M = 10
 MAP_HEIGHT_M = 10

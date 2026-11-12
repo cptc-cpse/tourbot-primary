@@ -4,6 +4,7 @@ from typing import Any
 import depthai as dai
 
 from communication.mqtt_client import Client
+import communication.mqtt_topics as topics
 from models.message import Message
 
 CAMERA_FPS = 60
@@ -16,10 +17,10 @@ SLAM_PARAMS = {
     "Rtabmap/SaveWMState": "true",
 }
 
-POSE_TOPIC = "tourbot/v1/sensors/oak/pose"
-OCCUPANCY_GRID_TOPIC = "tourbot/v1/maps/oak/occupancy_grid"
-OBSTACLE_POINT_CLOUD_TOPIC = "tourbot/v1/sensors/oak/obstacle_point_cloud"
-GROUND_POINT_CLOUD_TOPIC = "tourbot/v1/sensors/oak/ground_point_cloud"
+POSE_TOPIC = topics.POSE_TOPIC
+OCCUPANCY_GRID_TOPIC = topics.OCCUPANCY_GRID_TOPIC
+OBSTACLE_POINT_CLOUD_TOPIC = topics.OBSTACLE_POINT_CLOUD_TOPIC
+GROUND_POINT_CLOUD_TOPIC = topics.GROUND_POINT_CLOUD_TOPIC
 
 
 def stream_data() -> None:
