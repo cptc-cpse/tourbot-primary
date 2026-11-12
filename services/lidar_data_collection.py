@@ -2,7 +2,7 @@ import serial
 import time
 from typing import NoReturn
 
-from communication.mqtt_publisher import Publisher
+from communication.mqtt_client import Client
 from models.message import Message
 from models.lidar_point import LidarPoint
 
@@ -41,7 +41,7 @@ def decode_packet(packet: bytes) -> list[LidarPoint]:
 
 
 def stream_data() -> NoReturn:
-    publisher = Publisher.Publisher(qos=0, retain=False, process_id="lidar_data_collection")
+    publisher = Client(qos=0, retain=False, process_id="lidar_data_collection")
     buffer = bytearray()
 
     with serial.Serial(PORT, BAUD, timeout=0.1) as lidar:
