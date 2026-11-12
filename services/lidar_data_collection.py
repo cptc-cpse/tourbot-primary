@@ -10,6 +10,7 @@ PORT = "COM3"
 BAUD = 230400
 PACKET_SIZE = 47  # 2-byte header + 45 bytes from the tutorial
 SLEEP_INTERVAL = 0.1  # Time to wait between reads, in seconds
+TOPIC = "tourbot/v1/sensors/lidar/scan"
 
 def crc8(data: bytes) -> int:
     # Polynomial and initialization match the tutorial's CRC table.
@@ -69,5 +70,5 @@ def stream_data() -> NoReturn:
                 del buffer[:PACKET_SIZE]
                 points = decode_packet(packet)
                 message = Message(points)
-                publisher.publish("tourbot/v1/lidar_data_collection/points", message.to_json())
+                publisher.publish(TOPIC, message.to_json())
                 time.sleep(SLEEP_INTERVAL)

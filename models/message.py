@@ -2,6 +2,14 @@ import json
 import time
 from typing import Any
 
+
+def _json_default(value: object) -> Any:
+    to_dict = getattr(value, "to_dict", None)
+    if callable(to_dict):
+        return to_dict()
+    raise TypeError(f"Object of type {type(value).__name__} is not JSON serializable")
+
+
 class Message:
     def __init__(self, payload: Any, timestamp: float | None = None):
         self.payload = payload
@@ -9,10 +17,13 @@ class Message:
 
     def to_json(self) -> str:
         """Convert the message to a JSON string."""
-        return json.dumps({
-            "payload": self.payload,
-            "timestamp": self.timestamp
-        })
+        return json.dumps(
+            {
+                "payload": self.payload,
+                "timestamp": self.timestamp,
+            },
+            default=_json_default,
+        )
 
     @classmethod
     def from_json(cls, serialized: str) -> "Message":
