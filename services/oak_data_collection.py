@@ -4,23 +4,22 @@ from typing import Any
 import depthai as dai
 
 from communication.mqtt_client import Client
-import communication.mqtt_topics as topics
+from configuration import get_config_value
 from models.message import Message
 
-CAMERA_FPS = 30
-IMAGE_WIDTH = 640
-IMAGE_HEIGHT = 400
-IMU_FREQUENCY = 200
-METERS_PER_INDEX = .1 
-SLAM_PARAMS = {
+CAMERA_FPS: int = get_config_value("oak_camera_fps")
+IMAGE_WIDTH: int = get_config_value("oak_image_width")
+IMAGE_HEIGHT: int = get_config_value("oak_image_height")
+IMU_FREQUENCY: int = get_config_value("oak_imu_frequency") 
+SLAM_PARAMS: dict[str, str] = {
     "RGBD/CreateOccupancyGrid": "true",
     "Grid/3D": "true",
     "Rtabmap/SaveWMState": "true",
-    "Grid/CellSize": str(METERS_PER_INDEX),
+    "Grid/CellSize": str(get_config_value("map_resolution_m")),
 }
 
-OAK_TOPIC = topics.OAK_TOPIC
-PUBLISH_INTERVAL = 1.0 
+OAK_TOPIC: str = get_config_value("oak_topic")
+PUBLISH_INTERVAL: float = get_config_value("oak_publish_interval_s")
 
 
 def stream_data() -> None:
@@ -103,9 +102,7 @@ class MqttDataNode(dai.node.ThreadedHostNode):
                     raise TypeError(f"Expected MapData, received {type(grid).__name__}")
 
     @staticmethod
-    def _publish_pose_and_grid(client: Client, pose: dai.TransformData, grid: dai.MapData | None) -> None:
-        if grid is None:
-            return
+    def _publish_pose_and_grid(client: Client, pose: dai.TransformData, grid: dai.MapData) -> None:
         translation = pose.getTranslation()
         quaternion = pose.getQuaternion()
 
@@ -126,6 +123,5 @@ class MqttDataNode(dai.node.ThreadedHostNode):
             "map_width": frame.shape[1],
             "map_height": frame.shape[0],
             "map": frame.tolist(),
-            "resolution_m": METERS_PER_INDEX,
         }
         client.publish(OAK_TOPIC, Message(payload).to_json())
