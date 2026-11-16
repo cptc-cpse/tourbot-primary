@@ -8,19 +8,18 @@ from paho.mqtt.enums import CallbackAPIVersion
 from paho.mqtt.properties import Properties
 from paho.mqtt.reasoncodes import ReasonCode
 
+from configuration import get_config_value
 from models.message import Message
 
 logger: logging.Logger = logging.getLogger(__name__)
-BROKER = "localhost"
-PORT = 1883
 
 
 class Client:
     """Maintain an MQTT connection for publishing and topic subscriptions."""
 
     def __init__(self, qos: int, retain: bool, process_id: str):
-        self.BROKER: str = BROKER
-        self.PORT: int = PORT
+        self.BROKER: str = get_config_value("mqtt_broker")
+        self.PORT: int = get_config_value("mqtt_port")
         self.QOS: int = qos
         self.RETAIN: bool = retain
         self.LAST_WILL_MESSAGE: str = f"{process_id} has disconnected"
@@ -31,6 +30,10 @@ class Client:
         self._client = mqtt.Client(
             callback_api_version=CallbackAPIVersion.VERSION2
         )
+        username = get_config_value("mqtt_username")
+        password = get_config_value("mqtt_password")
+        if username or password:
+            self._client.username_pw_set(username, password)
         self._client.reconnect_delay_set(min_delay=1, max_delay=60)
         self._client.will_set(
             self.LAST_WILL_TOPIC,

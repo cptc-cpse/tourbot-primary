@@ -21,7 +21,7 @@ from threading import Event
 if __package__ in (None, ""):
     sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
-from communication import mqtt_topics
+from configuration import get_config_value
 from communication.mqtt_client import Client
 from models.message import Message
 
@@ -35,7 +35,7 @@ class HMIInterface:
     def start(self) -> None:
         """Subscribe to the command topic used by the dashboard."""
         self.node_red_client.subscribe(
-            mqtt_topics.HMI_COMMAND_TOPIC,
+            get_config_value("hmi_command_topic"),
             self.receive_command,
         )
 
@@ -43,7 +43,7 @@ class HMIInterface:
         """Log a dashboard command and publish an acknowledgement."""
         logger.info(
             "Received MQTT command on %s: %r",
-            mqtt_topics.HMI_COMMAND_TOPIC,
+            get_config_value("hmi_command_topic"),
             message.payload,
         )
         response = self.process_command(message.payload)
@@ -58,10 +58,10 @@ class HMIInterface:
 
     def publish_response(self, response: str) -> None:
         """Publish a plain-text response for the dashboard's MQTT input node."""
-        self.node_red_client.publish(mqtt_topics.HMI_RESPONSE_TOPIC, response)
+        self.node_red_client.publish(get_config_value("hmi_response_topic"), response)
         logger.info(
             "Published MQTT response on %s: %s",
-            mqtt_topics.HMI_RESPONSE_TOPIC,
+            get_config_value("hmi_response_topic"),
             response,
         )
 
@@ -80,7 +80,7 @@ def main() -> None:
         HMIInterface(client).start()
         logger.info(
             "Listening for dashboard commands on %s",
-            mqtt_topics.HMI_COMMAND_TOPIC,
+            get_config_value("hmi_command_topic"),
         )
         Event().wait()
 
