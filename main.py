@@ -6,6 +6,7 @@ from configuration import get_config_value
 from models.message import Message
 import services.oak_data_collection as oak
 import services.lidar_data_collection as lidar
+from services.hmi.hmi_interface import HMIInterface
 import services.mapping as mapping
 
 def test_subscribe(message: Message) -> None:
@@ -13,6 +14,9 @@ def test_subscribe(message: Message) -> None:
 
 def main():
     client = Client(qos=0, retain=False, process_id="main")
+    hmi_interface = HMIInterface(client)
+    hmi_interface.start()
+
     client.subscribe(get_config_value("oak_topic"), test_subscribe)
     oakThread = threading.Thread(target=oak.stream_data)
     oakThread.start()
