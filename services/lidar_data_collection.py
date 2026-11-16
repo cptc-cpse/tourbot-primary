@@ -1,22 +1,18 @@
-import os
 import serial
 import time
 from collections.abc import Iterable
 from typing import NoReturn
 
 from communication.mqtt_client import Client
-import communication.mqtt_topics as topics
+from configuration import get_config_value
 from models.message import Message
 from models.lidar_point import LidarPoint
 
-PORT = os.environ.get(
-    "LIDAR_PORT",
-    "COM3" if os.name == "nt" else "/dev/ttyUSB0",
-)
-BAUD = 230400
-PACKET_SIZE = 47  # 2-byte header + 45 bytes from the tutorial
-SLEEP_INTERVAL = 1  # Time to wait between reads, in seconds
-TOPIC = topics.LIDAR_TOPIC
+PORT: str = get_config_value("lidar_port")
+BAUD: int = 230400
+PACKET_SIZE: int = 47  # 2-byte header + 45 bytes from the tutorial
+PUBLISH_INTERVAL: float = get_config_value("lidar_publish_interval_s")
+LIDAR_TOPIC: str = get_config_value("lidar_topic")
 
 def crc8(data: bytes) -> int:
     # Polynomial and initialization match the tutorial's CRC table.
@@ -104,5 +100,5 @@ def stream_data() -> NoReturn:
                 points = decode_packet(packet)
                 for scan in scan_accumulator.add(points):
                     message = Message(scan)
-                    publisher.publish(TOPIC, message.to_json())
-                    time.sleep(SLEEP_INTERVAL)
+                    publisher.publish(LIDAR_TOPIC, message.to_json())
+                    time.sleep(PUBLISH_INTERVAL)
