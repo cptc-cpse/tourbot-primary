@@ -113,7 +113,11 @@ class Client:
         message: mqtt.MQTTMessage,
     ) -> None:
         try:
-            received = Message.from_json(bytes(message.payload).decode("utf-8"))
+            payload = bytes(message.payload).decode("utf-8")
+            try:
+                received = Message.from_json(payload)
+            except json.JSONDecodeError:
+                received = Message(payload)
         except (UnicodeDecodeError, json.JSONDecodeError, ValueError) as error:
             logger.error(
                 "Ignoring invalid MQTT message on topic %r: %s",

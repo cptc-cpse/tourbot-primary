@@ -5,12 +5,16 @@ from communication.mqtt_client import Client
 from models.message import Message
 import services.oak_data_collection as oak
 import services.lidar_data_collection as lidar
+from services.hmi.hmi_interface import HMIInterface
 
 def test_subscribe(message: Message) -> None:
     print("callback received: ", message.payload)
 
 def main():
     client = Client(qos=0, retain=False, process_id="main")
+    hmi_interface = HMIInterface(client)
+    hmi_interface.start()
+
     client.subscribe(oak.POSE_TOPIC, test_subscribe)
     client.subscribe(oak.OBSTACLE_POINT_CLOUD_TOPIC, test_subscribe)
     client.subscribe(oak.GROUND_POINT_CLOUD_TOPIC, test_subscribe)
