@@ -7,20 +7,19 @@ from communication.mqtt_client import Client
 import communication.mqtt_topics as topics
 from models.message import Message
 
-CAMERA_FPS = 60
+CAMERA_FPS = 30
 IMAGE_WIDTH = 640
 IMAGE_HEIGHT = 400
 IMU_FREQUENCY = 200
+METERS_PER_INDEX = .1 
 SLAM_PARAMS = {
     "RGBD/CreateOccupancyGrid": "true",
     "Grid/3D": "true",
     "Rtabmap/SaveWMState": "true",
+    "Grid/CellSize": str(METERS_PER_INDEX),
 }
 
-POSE_TOPIC = topics.POSE_TOPIC
-OCCUPANCY_GRID_TOPIC = topics.OCCUPANCY_GRID_TOPIC
-OBSTACLE_POINT_CLOUD_TOPIC = topics.OBSTACLE_POINT_CLOUD_TOPIC
-GROUND_POINT_CLOUD_TOPIC = topics.GROUND_POINT_CLOUD_TOPIC
+OAK_TOPIC = topics.OAK_TOPIC
 PUBLISH_INTERVAL = 1.0 
 
 
@@ -68,8 +67,6 @@ def stream_data() -> None:
 
         slam.transform.link(publisher.inputPose)
         slam.occupancyGridMap.link(publisher.inputGrid)
-        slam.obstaclePCL.link(publisher.inputObstaclePCL)
-        slam.groundPCL.link(publisher.inputGroundPCL)
 
         pipeline.start()
         while pipeline.isRunning():
@@ -83,8 +80,6 @@ class MqttDataNode(dai.node.ThreadedHostNode):
         super().__init__()
         self.inputPose = dai.Node.Input(self)
         self.inputGrid = dai.Node.Input(self)
-        self.inputObstaclePCL = dai.Node.Input(self)
-        self.inputGroundPCL = dai.Node.Input(self)
 
     def run(self) -> None:
         with Client(qos=0, retain=False, process_id="oak_data_collection") as client:
@@ -100,30 +95,21 @@ class MqttDataNode(dai.node.ThreadedHostNode):
                 if current_time - last_publish_time < PUBLISH_INTERVAL:
                     continue
                 last_publish_time = current_time
-                self._publish_pose(client, pose)
 
                 grid = self.inputGrid.tryGet()
                 if isinstance(grid, dai.MapData):
-                    self._publish_grid(client, grid)
+                    self._publish_pose_and_grid(client, pose, grid)
                 elif grid is not None:
                     raise TypeError(f"Expected MapData, received {type(grid).__name__}")
 
-                for input_cloud, topic in (
-                    (self.inputObstaclePCL, OBSTACLE_POINT_CLOUD_TOPIC),
-                    (self.inputGroundPCL, GROUND_POINT_CLOUD_TOPIC),
-                ):
-                    cloud = input_cloud.tryGet()
-                    if isinstance(cloud, dai.PointCloudData):
-                        self._publish_point_cloud(client, cloud, topic)
-                    elif cloud is not None:
-                        raise TypeError(
-                            f"Expected PointCloudData, received {type(cloud).__name__}"
-                        )
-
     @staticmethod
-    def _publish_pose(client: Client, pose: dai.TransformData) -> None:
+    def _publish_pose_and_grid(client: Client, pose: dai.TransformData, grid: dai.MapData | None) -> None:
+        if grid is None:
+            return
         translation = pose.getTranslation()
         quaternion = pose.getQuaternion()
+
+        frame = grid.map.getCvFrame()
         payload = {
             "position": {
                 "x": translation.x,
@@ -136,35 +122,10 @@ class MqttDataNode(dai.node.ThreadedHostNode):
                 "z": quaternion.qz,
                 "w": quaternion.qw,
             },
+            "map_origin": {"x": grid.minX, "y": grid.minY},
+            "map_width": frame.shape[1],
+            "map_height": frame.shape[0],
+            "map": frame.tolist(),
+            "resolution_m": METERS_PER_INDEX,
         }
-        client.publish(POSE_TOPIC, Message(payload).to_json())
-
-    @staticmethod
-    def _publish_grid(client: Client, grid: dai.MapData | None) -> None:
-        if grid is None:
-            return
-
-        frame = grid.map.getCvFrame()
-        payload = {
-            "origin": {"x": grid.minX, "y": grid.minY},
-            "width": frame.shape[1],
-            "height": frame.shape[0],
-            "data": frame.tolist(),
-        }
-        client.publish(OCCUPANCY_GRID_TOPIC, Message(payload).to_json())
-
-    @staticmethod
-    def _publish_point_cloud(
-        client: Client,
-        cloud: dai.PointCloudData | None,
-        topic: str,
-    ) -> None:
-        if cloud is None:
-            return
-
-        points, colors = cloud.getPointsRGB()
-        payload: dict[str, Any] = {
-            "points": points.tolist(),
-            "colors": colors.tolist(),
-        }
-        client.publish(topic, Message(payload).to_json())
+        client.publish(OAK_TOPIC, Message(payload).to_json())
