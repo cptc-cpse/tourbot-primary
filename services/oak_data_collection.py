@@ -123,6 +123,5 @@ class MqttDataNode(dai.node.ThreadedHostNode):
             "map_width": frame.shape[1],
             "map_height": frame.shape[0],
             "map": frame.tolist(),
-            "resolution_m": MAP_RESOLUTION_M,
         }
         client.publish(OAK_TOPIC, Message(payload).to_json())

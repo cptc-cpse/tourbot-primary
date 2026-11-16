@@ -26,4 +26,7 @@ DEFAULT_CONFIG = {
 
 def get_config_value(key: str) -> Any:
     """Retrieve a configuration value with a fallback to the default."""
-    return DEFAULT_CONFIG.get(key)
+    try:
+        return DEFAULT_CONFIG.get(key)
+    except KeyError:
+        raise ValueError(f"Configuration key not found: {key}")

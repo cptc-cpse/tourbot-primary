@@ -14,7 +14,7 @@ PUBLISH_INTERVAL: float = get_config_value("map_publish_interval_s")
 TOURBOT_BASE_WIDTH_M: float = 0.5  # Actually measured 53 cm
 TOURBOT_BASE_LENGTH_M: float = 0.6  # Actually measured 62 cm
 TOURBOT_BODY_WIDTH_M: float = 0.5 
-TOURBOT_BODY_LENGTH_M: float = 0.3
+TOURBOT_BODY_LENGTH_M: float = 0.3 # Should be the distance between the OAK cameras
 
 #Map key, -1 is unknown, 0 is free, 1 is tourbot, 2 is stationary obstacle, 3 is moving obstacle
 occupancy_map: list[list[int]] | None = None
