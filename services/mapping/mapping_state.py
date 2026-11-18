@@ -12,6 +12,7 @@ from services.mapping.pose_sample import PoseSample
 POSE_HISTORY_LIMIT = 1000
 PENDING_LIDAR_LIMIT = 32
 MATCHED_LIDAR_LIMIT = 100
+OAK_STALL_READINGS = 3
 
 TOURBOT_BASE_WIDTH_M = 0.5
 TOURBOT_BASE_LENGTH_M = 0.6
@@ -30,11 +31,15 @@ class MappingState:
         )
         self._base_width_cells = round(TOURBOT_BASE_WIDTH_M / self.map_resolution_m)
         self._base_length_cells = round(TOURBOT_BASE_LENGTH_M / self.map_resolution_m)
-        self._occupancy_map: list[list[int]] | None = None
-        self._current_position: dict[str, int | float] | None = None
+        self._map_cells: dict[tuple[int, int], int] = {}
+        self._cell_timestamps: dict[tuple[int, int], float] = {}
+        self._map_bounds: tuple[int, int, int, int] | None = None
+        self._current_pose: PoseSample | None = None
         self._position_history: deque[PoseSample] = deque(maxlen=POSE_HISTORY_LIMIT)
         self._pending_lidar_scans: deque[Message] = deque()
         self._matched_lidar_scans: deque[MatchedLidarScan] = deque()
+        self._consecutive_oak_stall_readings = 0
+        self._oak_stall_reported = False
         self._lock = RLock()
 
     def receive_lidar(self, message: Message) -> None:
@@ -72,45 +77,81 @@ class MappingState:
             and orientation["z"] == 0.5
             and orientation["w"] == 0.5
         ):
-            logger.warning("Default positional values detected; OAK odometry likely stalled")
+            with self._lock:
+                self._consecutive_oak_stall_readings += 1
+                stall_readings = self._consecutive_oak_stall_readings
+                should_raise = (
+                    stall_readings >= OAK_STALL_READINGS
+                    and not self._oak_stall_reported
+                )
+                if should_raise:
+                    self._oak_stall_reported = True
+
+            if should_raise:
+                error = (
+                    "OAK odometry returned default pose values for "
+                    f"{stall_readings} consecutive readings"
+                )
+                logger.error(error)
+                raise RuntimeError(error)
+
+            if not self._oak_stall_reported:
+                logger.warning(
+                    "Default OAK pose detected (%d/%d consecutive readings)",
+                    stall_readings,
+                    OAK_STALL_READINGS,
+                )
             return
 
-        grid_x = (position["x"] - map_origin["x"]) / self.map_resolution_m
-        grid_y = (position["y"] - map_origin["y"]) / self.map_resolution_m
+        with self._lock:
+            self._consecutive_oak_stall_readings = 0
+            self._oak_stall_reported = False
+
+        grid_x = position["x"] / self.map_resolution_m
+        grid_y = position["y"] / self.map_resolution_m
         heading_degrees = self.quaternion_to_map_heading_deg(orientation)
-        x_index = int(grid_x)
-        y_index = int(grid_y)
-        footprint_cells = self.tourbot_footprint_cells(
-            grid_x,
-            grid_y,
-            heading_degrees,
-            map_width,
-            map_height,
-        )
+        try:
+            origin_x = round(map_origin["x"] / self.map_resolution_m)
+            origin_y = round(map_origin["y"] / self.map_resolution_m)
+            if (
+                not isinstance(map_width, int)
+                or not isinstance(map_height, int)
+                or map_width <= 0
+                or map_height <= 0
+                or len(oak_map) != map_height
+                or any(len(row) != map_width for row in oak_map)
+            ):
+                raise ValueError("OAK map dimensions do not match its grid")
+        except (KeyError, TypeError, ValueError) as error:
+            logger.warning("Ignoring invalid OAK map dimensions or origin: %s", error)
+            return
 
         with self._lock:
-            self._current_position = {
-                "x": x_index,
-                "y": y_index,
-                "orientation": heading_degrees,
-            }
-            self._record_pose(
-                PoseSample(
-                    timestamp=message.timestamp,
-                    x=grid_x,
-                    y=grid_y,
-                    heading_degrees=heading_degrees,
-                )
+            self._include_bounds(
+                origin_x,
+                origin_y,
+                origin_x + map_width - 1,
+                origin_y + map_height - 1,
             )
+            for y, row in enumerate(oak_map):
+                for x, value in enumerate(row):
+                    if value == -1:
+                        continue
+                    self._update_cell(
+                        (origin_x + x, origin_y + y),
+                        2 if value >= 10 else 0,
+                        message.timestamp,
+                    )
 
-            for y in range(map_height):
-                for x in range(map_width):
-                    if (x, y) in footprint_cells:
-                        oak_map[y][x] = 1
-                    elif oak_map[y][x] >= 10:
-                        oak_map[y][x] = 2
-
-            self._occupancy_map = oak_map
+            self._current_pose = PoseSample(
+                timestamp=message.timestamp,
+                x=grid_x,
+                y=grid_y,
+                heading_degrees=heading_degrees,
+            )
+            self._record_pose(
+                self._current_pose
+            )
 
     def interpolate_position_at(self, timestamp: float) -> PoseSample | None:
         with self._lock:
@@ -157,16 +198,44 @@ class MappingState:
 
     def get_map_snapshot(self) -> dict[str, Any] | None:
         with self._lock:
-            if self._occupancy_map is None:
+            if self._map_bounds is None:
                 return None
+
+            min_x, min_y, max_x, max_y = self._map_bounds
+            width = max_x - min_x + 1
+            height = max_y - min_y + 1
+            grid = [[-1 for _ in range(width)] for _ in range(height)]
+
+            for (world_x, world_y), value in self._map_cells.items():
+                grid_y = world_y - min_y
+                grid_x = world_x - min_x
+                grid[grid_y][grid_x] = value
+
+            position: dict[str, int | float] | None = None
+            if self._current_pose is not None:
+                position = {
+                    "x": math.floor(self._current_pose.x) - min_x,
+                    "y": math.floor(self._current_pose.y) - min_y,
+                    "orientation": self._current_pose.heading_degrees,
+                }
+                robot_cells = self.tourbot_footprint_cells(
+                    self._current_pose.x - min_x,
+                    self._current_pose.y - min_y,
+                    self._current_pose.heading_degrees,
+                    width,
+                    height,
+                )
+                for x, y in robot_cells:
+                    grid[y][x] = 1
+
             return {
-                "map": [row.copy() for row in self._occupancy_map],
+                "map": grid,
                 "resolution_m": self.map_resolution_m,
-                "position": (
-                    self._current_position.copy()
-                    if self._current_position is not None
-                    else None
-                ),
+                "map_origin": {
+                    "x": min_x * self.map_resolution_m,
+                    "y": min_y * self.map_resolution_m,
+                },
+                "position": position,
             }
 
     def _record_pose(self, sample: PoseSample) -> None:
@@ -224,7 +293,128 @@ class MappingState:
                     position=position,
                 )
             )
+            self._integrate_lidar_scan(self._matched_lidar_scans[-1])
             self._pending_lidar_scans.popleft()
+
+    def _integrate_lidar_scan(self, scan: MatchedLidarScan) -> None:
+        if not isinstance(scan.points, list):
+            logger.warning(
+                "Ignoring LiDAR scan at %.6f: expected a list of points",
+                scan.timestamp,
+            )
+            return
+
+        start = (math.floor(scan.position.x), math.floor(scan.position.y))
+        invalid_points = 0
+        for point in scan.points:
+            if not isinstance(point, dict):
+                invalid_points += 1
+                continue
+            angle_degrees = point.get("angle_deg")
+            distance_mm = point.get("distance_mm")
+            if (
+                isinstance(angle_degrees, bool)
+                or not isinstance(angle_degrees, (int, float))
+                or isinstance(distance_mm, bool)
+                or not isinstance(distance_mm, (int, float))
+                or not math.isfinite(angle_degrees)
+                or not math.isfinite(distance_mm)
+                or distance_mm <= 0
+            ):
+                invalid_points += 1
+                continue
+
+            # LiDAR zero degrees is assumed to point along the robot's forward axis.
+            angle = math.radians(
+                (scan.position.heading_degrees + angle_degrees) % 360.0
+            )
+            distance_cells = distance_mm / 1000.0 / self.map_resolution_m
+            endpoint = (
+                math.floor(scan.position.x + distance_cells * math.sin(angle)),
+                math.floor(scan.position.y - distance_cells * math.cos(angle)),
+            )
+            ray = self._bresenham_cells(start, endpoint)
+            for cell in ray[:-1]:
+                self._update_cell(cell, 0, scan.timestamp)
+                self._include_cell(cell)
+            self._update_cell(endpoint, 2, scan.timestamp)
+            self._include_cell(endpoint)
+
+        if invalid_points:
+            logger.warning(
+                "Ignored %d invalid points in LiDAR scan at %.6f",
+                invalid_points,
+                scan.timestamp,
+            )
+
+    def _update_cell(
+        self,
+        cell: tuple[int, int],
+        value: int,
+        timestamp: float,
+    ) -> None:
+        previous_timestamp = self._cell_timestamps.get(cell)
+        if previous_timestamp is not None:
+            if timestamp < previous_timestamp:
+                return
+            if (
+                timestamp == previous_timestamp
+                and self._map_cells.get(cell) == 2
+                and value == 0
+            ):
+                return
+
+        self._map_cells[cell] = value
+        self._cell_timestamps[cell] = timestamp
+
+    def _include_cell(self, cell: tuple[int, int]) -> None:
+        self._include_bounds(cell[0], cell[1], cell[0], cell[1])
+
+    def _include_bounds(
+        self,
+        min_x: int,
+        min_y: int,
+        max_x: int,
+        max_y: int,
+    ) -> None:
+        if self._map_bounds is None:
+            self._map_bounds = (min_x, min_y, max_x, max_y)
+            return
+
+        old_min_x, old_min_y, old_max_x, old_max_y = self._map_bounds
+        self._map_bounds = (
+            min(old_min_x, min_x),
+            min(old_min_y, min_y),
+            max(old_max_x, max_x),
+            max(old_max_y, max_y),
+        )
+
+    @staticmethod
+    def _bresenham_cells(
+        start: tuple[int, int],
+        end: tuple[int, int],
+    ) -> list[tuple[int, int]]:
+        x, y = start
+        end_x, end_y = end
+        delta_x = abs(end_x - x)
+        step_x = 1 if x < end_x else -1
+        delta_y = -abs(end_y - y)
+        step_y = 1 if y < end_y else -1
+        error = delta_x + delta_y
+        cells = []
+
+        while True:
+            cells.append((x, y))
+            if x == end_x and y == end_y:
+                return cells
+
+            doubled_error = 2 * error
+            if doubled_error >= delta_y:
+                error += delta_y
+                x += step_x
+            if doubled_error <= delta_x:
+                error += delta_x
+                y += step_y
 
     def tourbot_footprint_cells(
         self,

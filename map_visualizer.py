@@ -7,7 +7,6 @@ from communication.mqtt_client import Client
 from communication.message import Message
 import services.lidar.lidar_data_collection as lidar
 import services.oak_data_collection as oak
-from services.hmi.hmi_interface import HMIInterface
 import services.mapping.mapping as mapping
 
 CELL_SIZE = 12
@@ -192,8 +191,8 @@ def main() -> None:
 
     oak_thread = threading.Thread(target=oak.stream_data)
     oak_thread.start()
-    #lidar_thread = threading.Thread(target=lidar.stream_data)
-    #lidar_thread.start()
+    lidar_thread = threading.Thread(target=lidar.stream_data)
+    lidar_thread.start()
     map_thread = threading.Thread(target=mapping.maintain_map)
     map_thread.start()
 
