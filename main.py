@@ -6,6 +6,7 @@ from configuration import get_config_value
 from models.message import Message
 import services.oak_data_collection as oak
 import services.lidar_data_collection as lidar
+from services.hmi.hmi_interface import HMIInterface
 import services.mapping as mapping
 
 def test_subscribe(message: Message) -> None:
