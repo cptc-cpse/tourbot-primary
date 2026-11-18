@@ -5,8 +5,8 @@ from typing import NoReturn
 
 from communication.mqtt_client import Client
 from configuration import get_config_value
-from models.message import Message
-from models.lidar_point import LidarPoint
+from communication.message import Message
+from services.lidar.lidar_point import LidarPoint
 
 PORT: str = get_config_value("lidar_port")
 BAUD: int = 230400

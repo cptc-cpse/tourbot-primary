@@ -9,7 +9,7 @@ from paho.mqtt.properties import Properties
 from paho.mqtt.reasoncodes import ReasonCode
 
 from configuration import get_config_value
-from models.message import Message
+from communication.message import Message
 
 logger: logging.Logger = logging.getLogger(__name__)
 

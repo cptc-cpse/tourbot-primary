@@ -23,7 +23,7 @@ if __package__ in (None, ""):
 
 from configuration import get_config_value
 from communication.mqtt_client import Client
-from models.message import Message
+from communication.message import Message
 
 logger = logging.getLogger(__name__)
 

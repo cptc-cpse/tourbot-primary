@@ -4,11 +4,11 @@ import tkinter as tk
 from queue import Empty, Queue
 
 from communication.mqtt_client import Client
-from models.message import Message
-import services.lidar_data_collection as lidar
+from communication.message import Message
+import services.lidar.lidar_data_collection as lidar
 import services.oak_data_collection as oak
 from services.hmi.hmi_interface import HMIInterface
-import services.mapping as mapping
+import services.mapping.mapping as mapping
 
 CELL_SIZE = 12
 BACKGROUND_COLOR = "#111827"
@@ -163,7 +163,7 @@ class MapVisualizer:
 
         tk.Label(
             self.legend,
-            text="0: hidden",
+            text="0: Empty",
             background=BACKGROUND_COLOR,
             foreground="white",
         ).pack(side="left", padx=6)

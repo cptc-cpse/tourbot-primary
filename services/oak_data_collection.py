@@ -5,7 +5,7 @@ import depthai as dai
 
 from communication.mqtt_client import Client
 from configuration import get_config_value
-from models.message import Message
+from communication.message import Message
 
 CAMERA_FPS: int = get_config_value("oak_camera_fps")
 IMAGE_WIDTH: int = get_config_value("oak_image_width")
