@@ -14,8 +14,10 @@ PENDING_LIDAR_LIMIT = 32
 MATCHED_LIDAR_LIMIT = 100
 OAK_STALL_READINGS = 3
 
+# Constants for the Tourbot's approximate physical dimensions in meters
 TOURBOT_BASE_WIDTH_M = 0.5
 TOURBOT_BASE_LENGTH_M = 0.6
+TOURBOT_BODY_LENGTH_M = 0.3 # Should be the distance between OAK cameras
 
 logger = logging.getLogger(__name__)
 
@@ -23,11 +25,20 @@ logger = logging.getLogger(__name__)
 class MappingState:
     """Own and update the occupancy map, robot pose history, and matched scans."""
 
-    def __init__(self, map_resolution_m: float | None = None) -> None:
+    def __init__(
+        self,
+        map_resolution_m: float | None = None,
+        testing_static_lidar: bool | None = None,
+    ) -> None:
         self.map_resolution_m = (
             get_config_value("map_resolution_m")
             if map_resolution_m is None
             else map_resolution_m
+        )
+        self.testing_static_lidar = (
+            get_config_value("testing_static_lidar")
+            if testing_static_lidar is None
+            else testing_static_lidar
         )
         self._base_width_cells = round(TOURBOT_BASE_WIDTH_M / self.map_resolution_m)
         self._base_length_cells = round(TOURBOT_BASE_LENGTH_M / self.map_resolution_m)
@@ -35,6 +46,7 @@ class MappingState:
         self._cell_timestamps: dict[tuple[int, int], float] = {}
         self._map_bounds: tuple[int, int, int, int] | None = None
         self._current_pose: PoseSample | None = None
+        self._static_lidar_pose: PoseSample | None = None
         self._position_history: deque[PoseSample] = deque(maxlen=POSE_HISTORY_LIMIT)
         self._pending_lidar_scans: deque[Message] = deque()
         self._matched_lidar_scans: deque[MatchedLidarScan] = deque()
@@ -135,11 +147,12 @@ class MappingState:
             )
             for y, row in enumerate(oak_map):
                 for x, value in enumerate(row):
-                    if value == -1:
+                    cell_value = self._classify_oak_cell(value)
+                    if cell_value is None:
                         continue
                     self._update_cell(
                         (origin_x + x, origin_y + y),
-                        2 if value >= 10 else 0,
+                        cell_value,
                         message.timestamp,
                     )
 
@@ -149,9 +162,25 @@ class MappingState:
                 y=grid_y,
                 heading_degrees=heading_degrees,
             )
+            if self.testing_static_lidar and self._static_lidar_pose is None:
+                self._static_lidar_pose = self._current_pose
+                logger.info(
+                    "Locked static LiDAR pose at x=%.3f, y=%.3f, heading=%.1f°",
+                    self._static_lidar_pose.x,
+                    self._static_lidar_pose.y,
+                    self._static_lidar_pose.heading_degrees,
+                )
             self._record_pose(
                 self._current_pose
             )
+
+    @staticmethod
+    def _classify_oak_cell(value: int) -> int | None:
+        # RTAB-Map's 8-bit map image uses 89 for unknown, darker for occupied,
+        # and brighter for free cells.
+        if value == 89 or value == -1:
+            return None
+        return 2 if value < 89 else 0
 
     def interpolate_position_at(self, timestamp: float) -> PoseSample | None:
         with self._lock:
@@ -261,24 +290,35 @@ class MappingState:
     def _match_pending_lidar_scans(self) -> None:
         while self._pending_lidar_scans and self._position_history:
             scan = self._pending_lidar_scans[0]
-            if scan.timestamp < self._position_history[0].timestamp:
-                self._pending_lidar_scans.popleft()
-                logger.warning(
-                    "Dropping LiDAR scan at %.6f: it predates retained pose history",
-                    scan.timestamp,
+            if self.testing_static_lidar and self._static_lidar_pose is not None:
+                position = PoseSample(
+                    timestamp=scan.timestamp,
+                    x=self._static_lidar_pose.x,
+                    y=self._static_lidar_pose.y,
+                    heading_degrees=self._static_lidar_pose.heading_degrees,
                 )
-                continue
+            else:
+                if scan.timestamp < self._position_history[0].timestamp:
+                    self._pending_lidar_scans.popleft()
+                    logger.warning(
+                        "Dropping LiDAR scan at %.6f: it predates retained pose history",
+                        scan.timestamp,
+                    )
+                    continue
 
-            position = self.interpolate_position_at(scan.timestamp)
-            if position is None:
-                if scan.timestamp > self._position_history[-1].timestamp:
-                    return
-                self._pending_lidar_scans.popleft()
-                logger.warning(
-                    "Dropping LiDAR scan at %.6f: no bracketing poses are available",
-                    scan.timestamp,
-                )
-                continue
+                position = self.interpolate_position_at(scan.timestamp)
+                if position is None:
+                    if scan.timestamp > self._position_history[-1].timestamp:
+                        return
+                    self._pending_lidar_scans.popleft()
+                    logger.warning(
+                        "Dropping LiDAR scan at %.6f: no bracketing poses are available",
+                        scan.timestamp,
+                    )
+                    continue
+
+                if self.testing_static_lidar:
+                    self._static_lidar_pose = position
 
             if len(self._matched_lidar_scans) >= MATCHED_LIDAR_LIMIT:
                 logger.error(

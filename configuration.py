@@ -22,7 +22,8 @@ DEFAULT_CONFIG = {
     "oak_topic": "tourbot/v1/sensors/oak/scan",
     "map_topic": "tourbot/v1/maps/snapshot",
     "hmi_command_topic": "tourbot/dashboard/manualControl",
-    "hmi_response_topic": "tourbot/dashboard/pcResponse"
+    "hmi_response_topic": "tourbot/dashboard/pcResponse",
+    "testing_static_lidar": True
 }
 
 
