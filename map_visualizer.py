@@ -6,7 +6,7 @@ from queue import Empty, Queue
 from communication.mqtt_client import Client
 from communication.message import Message
 import services.lidar.lidar_data_collection as lidar
-import services.oak_data_collection as oak
+import services.oak.oak_data_collection as oak
 import services.mapping.mapping as mapping
 
 CELL_SIZE = 12

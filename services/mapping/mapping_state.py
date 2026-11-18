@@ -170,6 +170,17 @@ class MappingState:
                     self._static_lidar_pose.y,
                     self._static_lidar_pose.heading_degrees,
                 )
+            boundary = self.tourbot_boundary_vertices(
+                grid_x,
+                grid_y,
+                heading_degrees,
+            )
+            self._include_bounds(
+                math.floor(min(point["x"] for point in boundary)),
+                math.floor(min(point["y"] for point in boundary)),
+                math.ceil(max(point["x"] for point in boundary)) - 1,
+                math.ceil(max(point["y"] for point in boundary)) - 1,
+            )
             self._record_pose(
                 self._current_pose
             )
@@ -241,6 +252,7 @@ class MappingState:
                 grid[grid_y][grid_x] = value
 
             position: dict[str, int | float] | None = None
+            robot_boundary: list[dict[str, float]] | None = None
             if self._current_pose is not None:
                 position = {
                     "x": math.floor(self._current_pose.x) - min_x,
@@ -256,6 +268,14 @@ class MappingState:
                 )
                 for x, y in robot_cells:
                     grid[y][x] = 1
+                robot_boundary = [
+                    {"x": point["x"] - min_x, "y": point["y"] - min_y}
+                    for point in self.tourbot_boundary_vertices(
+                        self._current_pose.x,
+                        self._current_pose.y,
+                        self._current_pose.heading_degrees,
+                    )
+                ]
 
             return {
                 "map": grid,
@@ -265,6 +285,7 @@ class MappingState:
                     "y": min_y * self.map_resolution_m,
                 },
                 "position": position,
+                "robot_boundary": robot_boundary,
             }
 
     def _record_pose(self, sample: PoseSample) -> None:
@@ -485,6 +506,39 @@ class MappingState:
                 ):
                     cells.add((x, y))
         return cells
+
+    def tourbot_boundary_vertices(
+        self,
+        center_x: float,
+        center_y: float,
+        heading_degrees: float,
+    ) -> list[dict[str, float]]:
+        angle = math.radians(heading_degrees)
+        forward_x = math.sin(angle)
+        forward_y = -math.cos(angle)
+        side_x = math.cos(angle)
+        side_y = math.sin(angle)
+        half_length = self._base_length_cells / 2.0
+        half_width = self._base_width_cells / 2.0
+
+        return [
+            {
+                "x": center_x + forward_x * half_length - side_x * half_width,
+                "y": center_y + forward_y * half_length - side_y * half_width,
+            },
+            {
+                "x": center_x + forward_x * half_length + side_x * half_width,
+                "y": center_y + forward_y * half_length + side_y * half_width,
+            },
+            {
+                "x": center_x - forward_x * half_length + side_x * half_width,
+                "y": center_y - forward_y * half_length + side_y * half_width,
+            },
+            {
+                "x": center_x - forward_x * half_length - side_x * half_width,
+                "y": center_y - forward_y * half_length - side_y * half_width,
+            },
+        ]
 
     @staticmethod
     def quaternion_to_map_heading_deg(orientation: dict[str, float]) -> float:

@@ -4,7 +4,7 @@ import threading
 from communication.mqtt_client import Client
 from configuration import get_config_value
 from communication.message import Message
-import services.oak_data_collection as oak
+import services.oak.oak_data_collection as oak
 import services.lidar.lidar_data_collection as lidar
 from services.hmi.hmi_interface import HMIInterface
 import services.mapping.mapping as mapping
