@@ -37,3 +37,8 @@ class Message:
             raise ValueError("Message JSON must contain a numeric timestamp")
 
         return cls(data["payload"], float(timestamp))
+
+    @classmethod
+    def to_string(cls, message: "Message") -> str:
+        """Return a string representation of the message."""
+        return f"Message(payload={message.payload}, timestamp={message.timestamp})"

@@ -10,7 +10,7 @@ DEFAULT_CONFIG = {
         "LIDAR_PORT",
         "COM3" if os.name == "nt" else "/dev/ttyUSB0",
     ),
-    "oak_camera_fps": 30,
+    "oak_camera_fps": 60,
     "oak_image_width": 640,
     "oak_image_height": 400,
     "oak_imu_frequency": 200,
