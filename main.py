@@ -8,6 +8,7 @@ import services.oak.oak_data_collection as oak
 import services.lidar.lidar_data_collection as lidar
 from services.hmi.hmi_interface import HMIInterface
 import services.mapping.mapping as mapping
+from services.navigation.navigation import NavigationService
 
 def test_subscribe(message: Message) -> None:
     print("callback received: ", message.payload)
@@ -16,6 +17,10 @@ def main():
     client = Client(qos=0, retain=False, process_id="main")
     hmi_interface = HMIInterface(client)
     hmi_interface.start()
+
+    navigation_service = NavigationService(hmi_interface)
+    navigationThread = threading.Thread(target=navigation_service.start)
+    navigationThread.start()
 
     #client.subscribe(get_config_value("oak_topic"), test_subscribe)
     oakThread = threading.Thread(target=oak.stream_data)
