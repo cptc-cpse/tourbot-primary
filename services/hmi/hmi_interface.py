@@ -31,6 +31,8 @@ logger = logging.getLogger(__name__)
 class HMIInterface:
     def __init__(self, node_red_client: Client):
         self.node_red_client = node_red_client
+        # Drive or state commands that are accesed by the navigation service
+        self.latest_command = None
 
     def start(self) -> None:
         """Subscribe to the command topic used by the dashboard."""
@@ -48,6 +50,8 @@ class HMIInterface:
         )
         response = self.process_command(message.payload)
         self.publish_response(response)
+        self.latest_command = response
+
 
     @staticmethod
     def process_command(command: object) -> str:
