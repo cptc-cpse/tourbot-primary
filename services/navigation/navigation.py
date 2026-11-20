@@ -1,5 +1,7 @@
 from asyncio.log import logger
 from services.hmi.hmi_interface import HMIInterface
+from services.plc.plc_motor_client import PLCMotorClient
+
 
 '''
 
@@ -10,7 +12,7 @@ and it will then send specified movement commands to the plc interface.
 '''
 
 class NavigationService:
-    def __init__(self, hmi_interface: HMIInterface):
+    def __init__(self, hmi_interface: HMIInterface, plc_motor_client: PLCMotorClient):
         # Needed to access hmi.latest_command
         self.hmi = hmi_interface
         # Idle, Manual, or Autonomous
