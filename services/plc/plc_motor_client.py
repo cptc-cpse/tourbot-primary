@@ -67,7 +67,7 @@ class PLCMotorClient:
     for the tour robot's differential drive system.
     """
     
-    def __init__(self, host: str = '192.168.10.2', port: int = 5005, 
+    def __init__(self, host: str = '192.168.0.2', port: int = 5005, 
                  timeout: float = 2.0, reconnect_interval: float = 5.0):
         """
         Initialize PLC motor client.
