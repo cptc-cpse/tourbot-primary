@@ -22,7 +22,7 @@ def main():
     plc = PLCMotorClient(host="192.168.0.2", port=5005)
     plc.connect()
 
-    navigation_service = NavigationService(hmi_interface, plc)
+    navigation_service = NavigationService(hmi_interface, plc, client)
     navigationThread = threading.Thread(target=navigation_service.start)
     navigationThread.start()
 
