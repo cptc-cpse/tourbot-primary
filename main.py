@@ -9,6 +9,7 @@ import services.lidar.lidar_data_collection as lidar
 from services.hmi.hmi_interface import HMIInterface
 import services.mapping.mapping as mapping
 from services.navigation.navigation import NavigationService
+from services.plc.plc_motor_client import PLCMotorClient
 
 def test_subscribe(message: Message) -> None:
     print("callback received: ", message.payload)
@@ -18,7 +19,10 @@ def main():
     hmi_interface = HMIInterface(client)
     hmi_interface.start()
 
-    navigation_service = NavigationService(hmi_interface)
+    plc = PLCMotorClient(host="192.168.0.2", port=5005)
+    plc.connect()
+
+    navigation_service = NavigationService(hmi_interface, plc)
     navigationThread = threading.Thread(target=navigation_service.start)
     navigationThread.start()
 
