@@ -1,5 +1,6 @@
 import logging
 import math
+from bisect import bisect_right
 from collections import deque
 from threading import RLock
 from typing import Any
@@ -150,8 +151,10 @@ class MappingState:
                     cell_value = self._classify_oak_cell(value)
                     if cell_value is None:
                         continue
+                    # The OAK publisher flips the RTAB-Map image vertically;
+                    # its row 0 therefore represents the highest world Y.
                     self._update_cell(
-                        (origin_x + x, origin_y + y),
+                        (origin_x + x, origin_y + map_height - 1 - y),
                         cell_value,
                         message.timestamp,
                     )
@@ -195,40 +198,9 @@ class MappingState:
 
     def interpolate_position_at(self, timestamp: float) -> PoseSample | None:
         with self._lock:
-            if not self._position_history:
-                return None
-
             samples = tuple(self._position_history)
-            if timestamp < samples[0].timestamp or timestamp > samples[-1].timestamp:
-                return None
-
-            for before, after in zip(samples, samples[1:]):
-                if before.timestamp <= timestamp <= after.timestamp:
-                    if timestamp == before.timestamp:
-                        return before
-                    if timestamp == after.timestamp:
-                        return after
-
-                    fraction = (timestamp - before.timestamp) / (
-                        after.timestamp - before.timestamp
-                    )
-                    heading_delta = (
-                        (after.heading_degrees - before.heading_degrees + 180.0)
-                        % 360.0
-                    ) - 180.0
-                    return PoseSample(
-                        timestamp=timestamp,
-                        x=before.x + (after.x - before.x) * fraction,
-                        y=before.y + (after.y - before.y) * fraction,
-                        heading_degrees=(
-                            before.heading_degrees + heading_delta * fraction
-                        )
-                        % 360.0,
-                    )
-
-            if timestamp == samples[-1].timestamp:
-                return samples[-1]
-            return None
+            timestamps = [sample.timestamp for sample in samples]
+            return self._interpolate_from_samples(timestamp, samples, timestamps)
 
     def take_matched_lidar_scan(self) -> MatchedLidarScan | None:
         with self._lock:
@@ -247,7 +219,7 @@ class MappingState:
             grid = [[-1 for _ in range(width)] for _ in range(height)]
 
             for (world_x, world_y), value in self._map_cells.items():
-                grid_y = world_y - min_y
+                grid_y = max_y - world_y
                 grid_x = world_x - min_x
                 grid[grid_y][grid_x] = value
 
@@ -256,7 +228,7 @@ class MappingState:
             if self._current_pose is not None:
                 position = {
                     "x": math.floor(self._current_pose.x) - min_x,
-                    "y": math.floor(self._current_pose.y) - min_y,
+                    "y": max_y - math.floor(self._current_pose.y),
                     "orientation": self._current_pose.heading_degrees,
                 }
                 robot_cells = self.tourbot_footprint_cells(
@@ -267,9 +239,12 @@ class MappingState:
                     height,
                 )
                 for x, y in robot_cells:
-                    grid[y][x] = 1
+                    grid[height - 1 - y][x] = 1
                 robot_boundary = [
-                    {"x": point["x"] - min_x, "y": point["y"] - min_y}
+                    {
+                        "x": point["x"] - min_x,
+                        "y": max_y + 1 - point["y"],
+                    }
                     for point in self.tourbot_boundary_vertices(
                         self._current_pose.x,
                         self._current_pose.y,
@@ -365,46 +340,78 @@ class MappingState:
             )
             return
 
-        start = (math.floor(scan.position.x), math.floor(scan.position.y))
         invalid_points = 0
+        unmatched_points = 0
+        pose_samples = tuple(self._position_history)
+        pose_timestamps = [sample.timestamp for sample in pose_samples]
+        interpolated_poses: dict[float, PoseSample | None] = {}
         for point in scan.points:
             if not isinstance(point, dict):
                 invalid_points += 1
                 continue
             angle_degrees = point.get("angle_deg")
             distance_mm = point.get("distance_mm")
+            point_timestamp = point.get("timestamp", scan.timestamp)
             if (
                 isinstance(angle_degrees, bool)
                 or not isinstance(angle_degrees, (int, float))
                 or isinstance(distance_mm, bool)
                 or not isinstance(distance_mm, (int, float))
+                or isinstance(point_timestamp, bool)
+                or not isinstance(point_timestamp, (int, float))
                 or not math.isfinite(angle_degrees)
                 or not math.isfinite(distance_mm)
+                or not math.isfinite(point_timestamp)
                 or distance_mm <= 0
             ):
                 invalid_points += 1
                 continue
 
+            point_pose = scan.position
+            if not self.testing_static_lidar and "timestamp" in point:
+                if point_timestamp not in interpolated_poses:
+                    interpolated_poses[point_timestamp] = self._interpolate_from_samples(
+                        point_timestamp,
+                        pose_samples,
+                        pose_timestamps,
+                    )
+                matched_pose = interpolated_poses[point_timestamp]
+                if matched_pose is None:
+                    unmatched_points += 1
+                    continue
+                point_pose = matched_pose
+
             # LiDAR zero degrees is assumed to point along the robot's forward axis.
             angle = math.radians(
-                (scan.position.heading_degrees + angle_degrees) % 360.0
+                (point_pose.heading_degrees + angle_degrees) % 360.0
             )
             distance_cells = distance_mm / 1000.0 / self.map_resolution_m
+            start = (math.floor(point_pose.x), math.floor(point_pose.y))
             endpoint = (
-                math.floor(scan.position.x + distance_cells * math.sin(angle)),
-                math.floor(scan.position.y - distance_cells * math.cos(angle)),
+                self._cell_index(
+                    point_pose.x + distance_cells * math.sin(angle)
+                ),
+                self._cell_index(
+                    point_pose.y + distance_cells * math.cos(angle)
+                ),
             )
             ray = self._bresenham_cells(start, endpoint)
             for cell in ray[:-1]:
-                self._update_cell(cell, 0, scan.timestamp)
+                self._update_cell(cell, 0, point_timestamp)
                 self._include_cell(cell)
-            self._update_cell(endpoint, 2, scan.timestamp)
+            self._update_cell(endpoint, 2, point_timestamp)
             self._include_cell(endpoint)
 
         if invalid_points:
             logger.warning(
                 "Ignored %d invalid points in LiDAR scan at %.6f",
                 invalid_points,
+                scan.timestamp,
+            )
+        if unmatched_points:
+            logger.warning(
+                "Ignored %d LiDAR points without a pose at their acquisition time in scan at %.6f",
+                unmatched_points,
                 scan.timestamp,
             )
 
@@ -430,6 +437,41 @@ class MappingState:
 
     def _include_cell(self, cell: tuple[int, int]) -> None:
         self._include_bounds(cell[0], cell[1], cell[0], cell[1])
+
+    @staticmethod
+    def _cell_index(coordinate: float) -> int:
+        return math.floor(coordinate + 1e-9)
+
+    @staticmethod
+    def _interpolate_from_samples(
+        timestamp: float,
+        samples: tuple[PoseSample, ...],
+        timestamps: list[float],
+    ) -> PoseSample | None:
+        if not samples or timestamp < timestamps[0] or timestamp > timestamps[-1]:
+            return None
+
+        after_index = bisect_right(timestamps, timestamp)
+        before = samples[after_index - 1]
+        if before.timestamp == timestamp or after_index == len(samples):
+            return before
+
+        after = samples[after_index]
+        fraction = (timestamp - before.timestamp) / (
+            after.timestamp - before.timestamp
+        )
+        heading_delta = (
+            (after.heading_degrees - before.heading_degrees + 180.0) % 360.0
+        ) - 180.0
+        return PoseSample(
+            timestamp=timestamp,
+            x=before.x + (after.x - before.x) * fraction,
+            y=before.y + (after.y - before.y) * fraction,
+            heading_degrees=(
+                before.heading_degrees + heading_delta * fraction
+            )
+            % 360.0,
+        )
 
     def _include_bounds(
         self,
@@ -487,9 +529,9 @@ class MappingState:
     ) -> set[tuple[int, int]]:
         angle = math.radians(heading_degrees)
         forward_x = math.sin(angle)
-        forward_y = -math.cos(angle)
+        forward_y = math.cos(angle)
         side_x = math.cos(angle)
-        side_y = math.sin(angle)
+        side_y = -math.sin(angle)
         half_length = self._base_length_cells / 2.0
         half_width = self._base_width_cells / 2.0
 
@@ -515,9 +557,9 @@ class MappingState:
     ) -> list[dict[str, float]]:
         angle = math.radians(heading_degrees)
         forward_x = math.sin(angle)
-        forward_y = -math.cos(angle)
+        forward_y = math.cos(angle)
         side_x = math.cos(angle)
-        side_y = math.sin(angle)
+        side_y = -math.sin(angle)
         half_length = self._base_length_cells / 2.0
         half_width = self._base_width_cells / 2.0
 

@@ -27,7 +27,7 @@ def crc8(data: bytes) -> int:
     return crc
 
 
-def decode_packet(packet: bytes) -> list[LidarPoint]:
+def decode_packet(packet: bytes, timestamp: float | None = None) -> list[LidarPoint]:
     start_angle = int.from_bytes(packet[4:6], "little")
     end_angle = int.from_bytes(packet[42:44], "little")
     step = ((end_angle - start_angle) % 36000) // 11
@@ -38,7 +38,9 @@ def decode_packet(packet: bytes) -> list[LidarPoint]:
         distance_mm = int.from_bytes(packet[offset:offset + 2], "little")
         intensity = packet[offset + 2]
         angle_degrees = ((start_angle + step * i) % 36000) / 100
-        points.append(LidarPoint(angle_degrees, distance_mm, intensity))
+        points.append(
+            LidarPoint(angle_degrees, distance_mm, intensity, timestamp)
+        )
 
     return points
 
@@ -73,6 +75,7 @@ def stream_data() -> NoReturn:
     publisher = Client(qos=0, retain=False, process_id="lidar_data_collection")
     buffer = bytearray()
     scan_accumulator = ScanAccumulator()
+    last_publish_time = 0.0
 
     with serial.Serial(PORT, BAUD, timeout=0.1) as lidar:
         print(f"Reading from {PORT}; press Ctrl+C to stop.")
@@ -97,8 +100,12 @@ def stream_data() -> NoReturn:
                     continue
 
                 del buffer[:PACKET_SIZE]
-                points = decode_packet(packet)
+                packet_timestamp = time.time()
+                points = decode_packet(packet, packet_timestamp)
                 for scan in scan_accumulator.add(points):
+                    current_time = time.monotonic()
+                    if current_time - last_publish_time < PUBLISH_INTERVAL:
+                        continue
+                    last_publish_time = current_time
                     message = Message(scan)
                     publisher.publish(LIDAR_TOPIC, message.to_json())
-                    time.sleep(PUBLISH_INTERVAL)

@@ -3,6 +3,8 @@ import threading
 import tkinter as tk
 from queue import Empty, Queue
 
+from serial.serialutil import SerialException
+
 from communication.mqtt_client import Client
 from communication.message import Message
 import services.lidar.lidar_data_collection as lidar
@@ -191,8 +193,11 @@ def main() -> None:
 
     oak_thread = threading.Thread(target=oak.stream_data)
     oak_thread.start()
-    lidar_thread = threading.Thread(target=lidar.stream_data)
-    lidar_thread.start()
+    try:
+        lidar_thread = threading.Thread(target=lidar.stream_data)
+        lidar_thread.start()
+    except SerialException:
+        print("LiDAR not found")
     map_thread = threading.Thread(target=mapping.maintain_map)
     map_thread.start()
 

@@ -1,7 +1,7 @@
 The current primary code repository for the tourbot project. 
 
 # Running it:
-On the first time, go through the relevant deployment instructions, then run the following in the repository's directory.
+On the first time, go through the relevant deployment instructions, make sure you have Mosquitto running then run the following in the repository's directory.
 
 ## Windows
 ``` 
