@@ -77,6 +77,8 @@ class MapVisualizer:
         self.root.configure(background=BACKGROUND_COLOR)
         self._closed = False
         self._pending_grids: Queue[list[list[int]]] = Queue()
+        self._latest_grid: list[list[int]] | None = None
+        self._resize_pending = False
 
         self.legend = tk.Frame(self.root, background=BACKGROUND_COLOR)
         self.legend.pack(fill="x", padx=8, pady=8)
@@ -102,6 +104,7 @@ class MapVisualizer:
             xscrollcommand=horizontal_scrollbar.set,
             yscrollcommand=vertical_scrollbar.set,
         )
+        self.canvas.bind("<Configure>", self._on_canvas_configure)
         self.canvas.grid(row=0, column=0, sticky="nsew")
         vertical_scrollbar.grid(row=0, column=1, sticky="ns")
         horizontal_scrollbar.grid(row=1, column=0, sticky="ew")
@@ -132,11 +135,32 @@ class MapVisualizer:
             self.root.after(50, self._drain_grid_queue)
 
     def _draw_grid(self, grid: list[list[int]]) -> None:
+        self._latest_grid = grid
+        self._render_grid(grid)
+
+    def _render_grid(self, grid: list[list[int]]) -> None:
         self.canvas.delete("all")
         height = len(grid)
         width = len(grid[0])
+        canvas_width = max(1, self.canvas.winfo_width())
+        canvas_height = max(1, self.canvas.winfo_height())
+        cell_size = self._fit_cell_size(
+            width,
+            height,
+            canvas_width,
+            canvas_height,
+        )
+        map_width = width * cell_size
+        map_height = height * cell_size
+        offset_x = max(0.0, (canvas_width - map_width) / 2.0)
+        offset_y = max(0.0, (canvas_height - map_height) / 2.0)
         self.canvas.configure(
-            scrollregion=(0, 0, width * CELL_SIZE, height * CELL_SIZE),
+            scrollregion=(
+                0,
+                0,
+                max(canvas_width, map_width),
+                max(canvas_height, map_height),
+            ),
         )
 
         values = sorted({value for row in grid for value in row if value != 0})
@@ -147,16 +171,40 @@ class MapVisualizer:
                 color = cell_color(value)
                 if color is None:
                     continue
-                x0 = column_index * CELL_SIZE
-                y0 = row_index * CELL_SIZE
+                x0 = offset_x + column_index * cell_size
+                y0 = offset_y + row_index * cell_size
                 self.canvas.create_rectangle(
                     x0,
                     y0,
-                    x0 + CELL_SIZE,
-                    y0 + CELL_SIZE,
+                    x0 + cell_size,
+                    y0 + cell_size,
                     fill=color,
                     outline=color,
                 )
+
+    @staticmethod
+    def _fit_cell_size(
+        grid_width: int,
+        grid_height: int,
+        canvas_width: int,
+        canvas_height: int,
+    ) -> float:
+        return min(
+            CELL_SIZE,
+            canvas_width / grid_width,
+            canvas_height / grid_height,
+        )
+
+    def _on_canvas_configure(self, _event: tk.Event) -> None:
+        if self._latest_grid is None or self._resize_pending:
+            return
+        self._resize_pending = True
+        self.root.after_idle(self._redraw_latest_grid)
+
+    def _redraw_latest_grid(self) -> None:
+        self._resize_pending = False
+        if self._latest_grid is not None and not self._closed:
+            self._render_grid(self._latest_grid)
 
     def _draw_legend(self, values: list[int]) -> None:
         for child in self.legend.winfo_children():

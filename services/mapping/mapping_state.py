@@ -223,10 +223,10 @@ class MappingState:
                 grid_x = world_x - min_x
                 grid[grid_y][grid_x] = value
 
-            position: dict[str, int | float] | None = None
+            pose: dict[str, int | float] | None = None
             robot_boundary: list[dict[str, float]] | None = None
             if self._current_pose is not None:
-                position = {
+                pose = {
                     "x": math.floor(self._current_pose.x) - min_x,
                     "y": max_y - math.floor(self._current_pose.y),
                     "orientation": self._current_pose.heading_degrees,
@@ -259,7 +259,7 @@ class MappingState:
                     "x": min_x * self.map_resolution_m,
                     "y": min_y * self.map_resolution_m,
                 },
-                "position": position,
+                "pose": pose,
                 "robot_boundary": robot_boundary,
             }
 
