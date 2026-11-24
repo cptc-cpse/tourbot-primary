@@ -55,6 +55,16 @@ class NavigationService:
             self.process_hmi_input()
             time.sleep(0.05)
 
+    def stop(self):
+        # Send command and check that it was received
+        while not self.plc.stop():
+            logger.error("Failed to send STOP command to PLC")
+            time.sleep(0.5)
+        
+        self.navigation_state = "idle"
+        self.last_sent_command = "STOP"
+        logger.info("Navigation state updated to: %s", self.navigation_state)
+
     def navigate(self):
             if self.navigation_state == "autonomous":
                 logger.info("Entering autonomous navigation mode.")
@@ -72,7 +82,7 @@ class NavigationService:
             self.navigate()
 
     # Check the latest hmi command and update the navigation state accordingly
-    def update_navigation_state(self):  
+    def update_navigation_state(self, message):  
 
         # Enter manual mode
         if self.hmi.latest_command == "TAKE_CONTROL" and self.navigation_state != "manual":   
@@ -85,13 +95,7 @@ class NavigationService:
 
         # Exit manual mode
         elif self.hmi.latest_command == "RELEASE_CONTROL" and self.navigation_state != "idle":        
-            # Send command and check that it was received
-            while not self.plc.stop():
-                logger.error("Failed to send STOP command to PLC")
-                time.sleep(0.5)
-           
-            self.navigation_state = "idle"
-            logger.info("Navigation state updated to: %s", self.navigation_state)
+            self.stop()
 
         # Enter autonomous mode
         elif self.hmi.latest_command == "START_AUTONOMOUS":
@@ -106,9 +110,8 @@ class NavigationService:
             if self.navigation_state != "autonomous":
                 self.hmi.publish_response("Tourbot needs to be in autonomous mode to exit it")
             else:    
-                self.navigation_state = "idle"
-                logger.info("Navigation state updated to: %s", self.navigation_state)
-
+                self.stop()
+    
     def _on_map_message(self, message: Message) -> None:
         payload = message.payload
         if not isinstance(payload, dict):
@@ -160,4 +163,15 @@ class NavigationService:
         # If all checkpoints have been visited, return to the starting point and
         # perform completed route routine.
 
-        pass
+        # Test code
+
+        # Tourbot drives forward until an obstacle is detected,
+        # then it stops.
+
+        if self.last_sent_command != "START":
+            self.plc.send_command("START")
+
+        while not self.detect_obstacle():
+            time.sleep(0.05)
+
+        self.stop()
