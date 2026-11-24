@@ -76,7 +76,12 @@ class NavigationService:
     def process_hmi_input(self):
         if self.hmi.latest_command == self.last_sent_command:
             pass
-        elif self.hmi.latest_command in {"TAKE_CONTROL", "RELEASE_CONTROL", "START_AUTONOMOUS"}:
+        elif self.hmi.latest_command in {
+                                            "TAKE_CONTROL", 
+                                            "RELEASE_CONTROL", 
+                                            "START_AUTONOMOUS", 
+                                            "END_AUTONOMOUS"
+                                        }:
             self.update_navigation_state()
         else:
             self.navigate()
