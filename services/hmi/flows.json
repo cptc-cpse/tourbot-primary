@@ -16,7 +16,7 @@
         "className": "start-auto-btn",
         "icon": "mdi-play-circle-outline",
         "iconPosition": "left",
-        "payload": "",
+        "payload": "START_AUTONOMOUS",
         "payloadType": "str",
         "topic": "topic",
         "topicType": "msg",
@@ -126,7 +126,7 @@
         }
     },
     {
-        "id": "776998b553b12472",
+        "id": "3616fc8545a67501",
         "type": "global-config",
         "env": [],
         "modules": {
