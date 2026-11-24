@@ -66,7 +66,7 @@ class NavigationService:
     def process_hmi_input(self):
         if self.hmi.latest_command == self.last_sent_command:
             pass
-        elif self.hmi.latest_command in {"TAKE_CONTROL", "RELEASE_CONTROL"}:
+        elif self.hmi.latest_command in {"TAKE_CONTROL", "RELEASE_CONTROL", "START_AUTONOMOUS"}:
             self.update_navigation_state()
         else:
             self.navigate()
@@ -74,6 +74,7 @@ class NavigationService:
     # Check the latest hmi command and update the navigation state accordingly
     def update_navigation_state(self):  
 
+        # Enter manual mode
         if self.hmi.latest_command == "TAKE_CONTROL" and self.navigation_state != "manual":   
             # Send command and check that it was received
             if not self.plc.send_command(self.hmi.latest_command):
@@ -82,6 +83,7 @@ class NavigationService:
                 self.navigation_state = "manual"
                 logger.info("Navigation state updated to: %s", self.navigation_state)
 
+        # Exit manual mode
         elif self.hmi.latest_command == "RELEASE_CONTROL" and self.navigation_state != "idle":        
             # Send command and check that it was received
             while not self.plc.stop():
@@ -90,6 +92,22 @@ class NavigationService:
            
             self.navigation_state = "idle"
             logger.info("Navigation state updated to: %s", self.navigation_state)
+
+        # Enter autonomous mode
+        elif self.hmi.latest_command == "START_AUTONOMOUS":
+            if self.navigation_state != "idle":
+                self.hmi.publish_response("Tourbot needs to be idle to enter autonomous mode")
+            else:
+                self.navigation_state = "autonomous"
+                logger.info("Navigation state updated to: %s", self.navigation_state)
+
+        # Exit autonomous mode
+        elif self.hmi.latest_command == "END_AUTONOMOUS" and self.navigation_state == "autonomous":
+            if self.navigation_state != "autonomous":
+                self.hmi.publish_response("Tourbot needs to be in autonomous mode to exit it")
+            else:    
+                self.navigation_state = "idle"
+                logger.info("Navigation state updated to: %s", self.navigation_state)
 
     def _on_map_message(self, message: Message) -> None:
         payload = message.payload
