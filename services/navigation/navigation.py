@@ -34,6 +34,13 @@ class NavigationService:
         # The last command sent to the PLC interface
         self.last_sent_command = None
 
+        self._map_lock = Lock()
+        self._latest_map = None
+        mqtt_client.subscribe(
+            get_config_value("map_topic"),
+            self._on_map_message
+        )
+
     def start(self):
         # Start navigation service
         logger.info("Navigation service started. Current state: %s", self.navigation_state)
@@ -84,6 +91,22 @@ class NavigationService:
            
             self.navigation_state = "idle"
             logger.info("Navigation state updated to: %s", self.navigation_state)
+
+    def _on_map_message(self, message: Message) -> None:
+        payload = message.payload
+        if not isinstance(payload, dict):
+            return
+
+        grid = payload.get("map")
+        if not isinstance(grid, list) or not grid:
+            return
+
+        with self._map_lock:
+            self._latest_map = payload
+
+    def get_latest_map(self) -> dict | None:
+        with self._map_lock:
+            return self._latest_map
 
     # Returns True if an obstacle is detected in the Tourbot's path, False otherwise
     def detect_obstacle(self) -> bool:
