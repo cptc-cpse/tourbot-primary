@@ -45,8 +45,7 @@ class NavigationService:
         # Start navigation service
         logger.info("Navigation service started. Current state: %s", self.navigation_state)
 
-        while not self._scan_received.wait(timeout=0.1):
-            pass  # Don't process drive commands before LiDAR is ready.
+        self.detect_obstacle()
         
         # Our tracer bullet calls for the Tourbot to move forward until an object
         # is detected, hence this flag.
