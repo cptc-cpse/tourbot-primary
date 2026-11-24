@@ -51,6 +51,8 @@ class PLCCommand(Enum):
     TURN = "TURN"
     SHARP_TURN = "SHARP_TURN"
     STATUS = "STATUS"
+    TAKE_CONTROL = "TAKE_CONTROL"
+    RELEASE_CONTROL = "RELEASE_CONTROL"
     # Extended commands for differential drive
     FORWARD_LEFT = "FORWARD_LEFT"
     FORWARD_RIGHT = "FORWARD_RIGHT"

@@ -144,8 +144,6 @@ class NavigationService:
             else:
                 logger.error("Failed to send PLC command %r", self.hmi.latest_command)    
 
-
-
     def autonomous_navigation(self):
         # Wait for checkpoint selection from the HMI interface.
 
