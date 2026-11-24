@@ -34,16 +34,6 @@ class NavigationService:
         # The last command sent to the PLC interface
         self.last_sent_command = None
 
-        # Lidar obstacle detection variables
-        self._scan_lock = Lock()
-        self._obstacle_ahead = False
-        self._last_scan_time = 0.0
-        self._scan_received = Event()
-        mqtt_client.subscribe(
-            get_config_value("lidar_topic"), 
-            self._on_lidar_scan
-        )
-
     def start(self):
         # Start navigation service
         logger.info("Navigation service started. Current state: %s", self.navigation_state)
@@ -95,43 +85,9 @@ class NavigationService:
             self.navigation_state = "idle"
             logger.info("Navigation state updated to: %s", self.navigation_state)
 
-    def _on_lidar_scan(self, message: Message) -> None:
-        points = message.payload
-        if not isinstance(points, list):
-            return
-
-        obstacle = any(
-            isinstance(p, dict)
-            and isinstance(p.get("angle_deg"), (int, float))
-            and isinstance(p.get("distance_mm"), (int, float))
-            and abs((p["angle_deg"] + 180) % 360 - 180) <= 30
-            and 0 < p["distance_mm"] <= 500
-            for p in points
-        )
-
-        with self._scan_lock:
-            self._obstacle_ahead = obstacle
-            self._last_scan_time = message.timestamp
-            self._scan_received.set()
-
     # Returns True if an obstacle is detected in the Tourbot's path, False otherwise
     def detect_obstacle(self) -> bool:
-        with self._scan_lock:
-            detected = (
-                self._obstacle_ahead
-                or time.time() - self._last_scan_time > 1.0
-            )
-
-        if detected and not self.obstacle_detected:
-            # Send command and check that it was received
-            while not self.plc.stop():
-                logger.error("Failed to send STOP command to PLC")
-                time.sleep(0.5)
-            
-            self.navigation_state = "idle"
-            self.obstacle_detected = detected
-
-        return detected
+        pass
 
     def manual_navigation(self):
 
