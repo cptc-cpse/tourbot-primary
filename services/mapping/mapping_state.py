@@ -593,7 +593,9 @@ class MappingState:
         )
         norm = math.sqrt(x * x + y * y + z * z + w * w)
         if not math.isfinite(norm) or norm == 0.0:
-            raise ValueError("Orientation quaternion must have a finite, non-zero norm")
+            error = "Orientation quaternion must have a finite, non-zero norm"
+            logger.error(error)
+            raise ValueError(error)
 
         x, y, z, w = x / norm, y / norm, z / norm, w / norm
         yaw = math.atan2(

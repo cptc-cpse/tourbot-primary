@@ -1,4 +1,5 @@
 import colorsys
+import logging
 import threading
 import tkinter as tk
 from queue import Empty, Queue
@@ -26,6 +27,8 @@ CELL_NAMES = {
     3: "Moving obstacle",
 }
 
+logger = logging.getLogger(__name__)
+
 
 def cell_color(value: int) -> str | None:
     """Return no color for free cells and a stable color for every other value."""
@@ -41,28 +44,40 @@ def cell_color(value: int) -> str | None:
 
 def validate_grid(payload: object) -> list[list[int]]:
     if not isinstance(payload, dict):
-        raise ValueError("Map message payload must be an object")
+        error = "Map message payload must be an object"
+        logger.error(error)
+        raise ValueError(error)
 
     grid_value = payload.get("map")
     if not isinstance(grid_value, list) or not grid_value:
-        raise ValueError("Map message must contain a non-empty grid")
+        error = "Map message must contain a non-empty grid"
+        logger.error(error)
+        raise ValueError(error)
 
     grid: list[list[int]] = []
     expected_width: int | None = None
     for row in grid_value:
         if not isinstance(row, list):
-            raise ValueError("Map grid rows must be lists")
+            error = "Map grid rows must be lists"
+            logger.error(error)
+            raise ValueError(error)
         if expected_width is None:
             expected_width = len(row)
             if expected_width == 0:
-                raise ValueError("Map grid rows must not be empty")
+                error = "Map grid rows must not be empty"
+                logger.error(error)
+                raise ValueError(error)
         elif len(row) != expected_width:
-            raise ValueError("Map grid rows must have equal widths")
+            error = "Map grid rows must have equal widths"
+            logger.error(error)
+            raise ValueError(error)
 
         validated_row: list[int] = []
         for value in row:
             if isinstance(value, bool) or not isinstance(value, int):
-                raise ValueError("Map grid cells must be integers")
+                error = "Map grid cells must be integers"
+                logger.error(error)
+                raise ValueError(error)
             validated_row.append(value)
         grid.append(validated_row)
 
@@ -245,7 +260,7 @@ def main() -> None:
         lidar_thread = threading.Thread(target=lidar.stream_data)
         lidar_thread.start()
     except SerialException:
-        print("LiDAR not found")
+        logger.exception("LiDAR not found")
     map_thread = threading.Thread(target=mapping.maintain_map)
     map_thread.start()
 
@@ -253,4 +268,5 @@ def main() -> None:
 
 
 if __name__ == "__main__":
+    logging.basicConfig(level=logging.INFO)
     main()

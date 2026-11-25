@@ -43,6 +43,8 @@ import logging
 from typing import Optional, Tuple, Dict
 from enum import Enum
 
+logger = logging.getLogger(__name__)
+
 
 class PLCCommand(Enum):
     """PLC command strings matching Arduino code."""
@@ -335,46 +337,46 @@ if __name__ == '__main__':
     # Test the PLC motor client
     logging.basicConfig(level=logging.DEBUG)
     
-    print("PLC Motor Client Test")
-    print("=" * 50)
+    logger.info("PLC Motor Client Test")
+    logger.info("=" * 50)
     
     client = PLCMotorClient(host='192.168.10.2', port=5005)
     
-    print(f"\nConnecting to PLC at {client.host}:{client.port}...")
+    logger.info("Connecting to PLC at %s:%s...", client.host, client.port)
     if not client.connect():
-        print("FAILED to connect. Check PLC IP/port and network.")
+        logger.error("FAILED to connect. Check PLC IP/port and network.")
         exit(1)
     
-    print("✓ Connected successfully\n")
+    logger.info("Connected successfully")
     
     # Test status
-    print("Querying status...")
+    logger.info("Querying status...")
     status = client.get_status()
-    print(f"  Emergency Stop: {'ACTIVE' if status['emergency_stop'] else 'OK'}")
-    print(f"  Drive Fault: {'FAULT' if status['drive_fault'] else 'OK'}")
+    logger.info("Emergency Stop: %s", "ACTIVE" if status['emergency_stop'] else "OK")
+    logger.info("Drive Fault: %s", "FAULT" if status['drive_fault'] else "OK")
     
     # Test commands
-    print("\nTesting commands (5 seconds each):")
+    logger.info("Testing commands (5 seconds each):")
     
-    print("  → Setting speed to 30%...")
+    logger.info("Setting speed to 30%...")
     client.set_speed(30)
     time.sleep(1)
     
-    print("  → Forward motion...")
+    logger.info("Forward motion...")
     client.send_command('START')
     time.sleep(5)
     
-    print("  → Stopping...")
+    logger.info("Stopping...")
     client.stop()
     time.sleep(1)
     
-    print("  → Turn left...")
+    logger.info("Turn left...")
     client.send_command('TURN')
     time.sleep(3)
     
-    print("  → Stopping...")
+    logger.info("Stopping...")
     client.stop()
     time.sleep(1)
     
-    print("\n✓ Test complete")
+    logger.info("Test complete")
     client.disconnect()

@@ -1,12 +1,16 @@
-import serial
+import logging
 import time
 from collections.abc import Iterable
 from typing import NoReturn
+
+import serial
 
 from communication.mqtt_client import Client
 from configuration import get_config_value
 from communication.message import Message
 from services.lidar.lidar_point import LidarPoint
+
+logger = logging.getLogger(__name__)
 
 PORT: str = get_config_value("lidar_port")
 BAUD: int = 230400
@@ -78,7 +82,7 @@ def stream_data() -> NoReturn:
     last_publish_time = 0.0
 
     with serial.Serial(PORT, BAUD, timeout=0.1) as lidar:
-        print(f"Reading from {PORT}; press Ctrl+C to stop.")
+        logger.info("Reading from %s; press Ctrl+C to stop.", PORT)
         while True:
             buffer.extend(lidar.read(256))
 

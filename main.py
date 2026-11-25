@@ -1,3 +1,4 @@
+import logging
 import time
 import threading
 
@@ -9,8 +10,11 @@ import services.lidar.lidar_data_collection as lidar
 from services.hmi.hmi_interface import HMIInterface
 import services.mapping.mapping as mapping
 
+logger = logging.getLogger(__name__)
+
+
 def test_subscribe(message: Message) -> None:
-    print("callback received: ", message.payload)
+    logger.info("Callback received: %s", message.payload)
 
 def main():
     client = Client(qos=0, retain=False, process_id="main")
@@ -31,4 +35,5 @@ def main():
 
 
 if __name__ == "__main__":
+    logging.basicConfig(level=logging.INFO)
     main()

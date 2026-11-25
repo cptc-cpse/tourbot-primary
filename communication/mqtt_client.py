@@ -47,23 +47,23 @@ class Client:
 
         result = self._client.connect(self.BROKER, self.PORT, 60)
         if result != mqtt.MQTT_ERR_SUCCESS:
-            raise RuntimeError(
-                f"Error connecting to MQTT broker: {mqtt.error_string(result)}"
-            )
+            error = f"Error connecting to MQTT broker: {mqtt.error_string(result)}"
+            logger.error(error)
+            raise RuntimeError(error)
 
         result = self._client.loop_start()
         if result != mqtt.MQTT_ERR_SUCCESS:
-            raise RuntimeError(
-                f"Error starting MQTT network loop: {mqtt.error_string(result)}"
-            )
+            error = f"Error starting MQTT network loop: {mqtt.error_string(result)}"
+            logger.error(error)
+            raise RuntimeError(error)
 
     def publish(self, topic: str, payload: str) -> None:
         """Queue a payload for asynchronous publishing on the MQTT connection."""
         result = self._client.publish(topic, payload, qos=self.QOS, retain=self.RETAIN)
         if result.rc != mqtt.MQTT_ERR_SUCCESS:
-            raise RuntimeError(
-                f"Error publishing MQTT message: {mqtt.error_string(result.rc)}"
-            )
+            error = f"Error publishing MQTT message: {mqtt.error_string(result.rc)}"
+            logger.error(error)
+            raise RuntimeError(error)
 
     def subscribe(self, topic: str, callback: Callable[[Message], None]) -> None:
         """Subscribe to a topic and pass each received message to ``callback``."""
@@ -81,10 +81,12 @@ class Client:
                     self._callbacks.pop(topic, None)
                 else:
                     self._callbacks[topic] = previous_callback
-            raise RuntimeError(
+            error = (
                 f"Error subscribing to MQTT topic {topic!r}: "
                 f"{mqtt.error_string(result)}"
             )
+            logger.error(error)
+            raise RuntimeError(error)
 
     def _on_connect(
         self,

@@ -1,5 +1,8 @@
+import logging
 import os
 from typing import Any
+
+logger = logging.getLogger(__name__)
 
 DEFAULT_CONFIG = {
     "mqtt_broker": "localhost",
@@ -30,6 +33,7 @@ DEFAULT_CONFIG = {
 def get_config_value(key: str) -> Any:
     """Retrieve a configuration value with a fallback to the default."""
     try:
-        return DEFAULT_CONFIG.get(key)
-    except KeyError:
-        raise ValueError(f"Configuration key not found: {key}")
+        return DEFAULT_CONFIG[key]
+    except KeyError as error:
+        logger.error("Configuration key not found: %s", key)
+        raise ValueError(f"Configuration key not found: {key}") from error

@@ -1,13 +1,18 @@
 import json
+import logging
 import time
 from typing import Any
+
+logger = logging.getLogger(__name__)
 
 
 def _json_default(value: object) -> Any:
     to_dict = getattr(value, "to_dict", None)
     if callable(to_dict):
         return to_dict()
-    raise TypeError(f"Object of type {type(value).__name__} is not JSON serializable")
+    error = f"Object of type {type(value).__name__} is not JSON serializable"
+    logger.error(error)
+    raise TypeError(error)
 
 
 class Message:
@@ -30,11 +35,15 @@ class Message:
         """Create a message from its JSON representation."""
         data = json.loads(serialized)
         if not isinstance(data, dict) or "payload" not in data:
-            raise ValueError("Message JSON must be an object containing a payload")
+            error = "Message JSON must be an object containing a payload"
+            logger.error(error)
+            raise ValueError(error)
 
         timestamp = data.get("timestamp")
         if isinstance(timestamp, bool) or not isinstance(timestamp, (int, float)):
-            raise ValueError("Message JSON must contain a numeric timestamp")
+            error = "Message JSON must contain a numeric timestamp"
+            logger.error(error)
+            raise ValueError(error)
 
         return cls(data["payload"], float(timestamp))
 

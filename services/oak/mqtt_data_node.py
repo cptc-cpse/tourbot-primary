@@ -1,9 +1,13 @@
-import depthai as dai
+import logging
 import time
+
+import depthai as dai
 
 from communication.mqtt_client import Client
 from configuration import get_config_value
 from communication.message import Message
+
+logger = logging.getLogger(__name__)
 
 OAK_TOPIC: str = get_config_value("oak_topic")
 PUBLISH_INTERVAL: float = get_config_value("oak_publish_interval_s")
@@ -24,7 +28,9 @@ class MqttDataNode(dai.node.ThreadedHostNode):
                 if pose is None:
                     continue
                 if not isinstance(pose, dai.TransformData):
-                    raise TypeError(f"Expected TransformData, received {type(pose).__name__}")
+                    error = f"Expected TransformData, received {type(pose).__name__}"
+                    logger.error(error)
+                    raise TypeError(error)
 
                 current_time = time.monotonic()
                 if current_time - last_publish_time < PUBLISH_INTERVAL:
@@ -35,7 +41,9 @@ class MqttDataNode(dai.node.ThreadedHostNode):
                 if isinstance(grid, dai.MapData):
                     self._publish_pose_and_grid(client, pose, grid)
                 elif grid is not None:
-                    raise TypeError(f"Expected MapData, received {type(grid).__name__}")
+                    error = f"Expected MapData, received {type(grid).__name__}"
+                    logger.error(error)
+                    raise TypeError(error)
 
     @staticmethod
     def _publish_pose_and_grid(client: Client, pose: dai.TransformData, grid: dai.MapData) -> None:
