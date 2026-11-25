@@ -17,7 +17,7 @@ DEFAULT_CONFIG = {
     "lidar_publish_interval_s": .1,
     "oak_publish_interval_s": .1,
     "map_publish_interval_s": .1,
-    "map_resolution_m": 0.1,
+    "map_resolution_m": 0.05,
     "lidar_topic": "tourbot/v1/sensors/lidar/scan",
     "oak_topic": "tourbot/v1/sensors/oak/scan",
     "map_topic": "tourbot/v1/maps/snapshot",

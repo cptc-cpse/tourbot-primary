@@ -15,6 +15,10 @@ SLAM_PARAMS: dict[str, str] = {
     "Grid/3D": "true",
     "Rtabmap/SaveWMState": "true",
     "Grid/CellSize": str(get_config_value("map_resolution_m")),
+    "Grid/Sensor": "2",
+    "Grid/RayTracing": "true",
+    "Grid/MaxGroundAngle": "60",
+    "GridGlobal/FootprintRadius": ".25",
 }
 
 def stream_data() -> None:
