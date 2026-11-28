@@ -1,0 +1,1441 @@
+[
+    {
+        "id": "ee5baa48c91ec01d",
+        "type": "tab",
+        "label": "MQTT Flow",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "3897642c505f17ae",
+        "type": "ui-button",
+        "z": "ee5baa48c91ec01d",
+        "group": "ui_group_controls",
+        "name": "TAKE MANUAL CONTROL",
+        "label": "TAKE MANUAL CONTROL",
+        "order": 2,
+        "width": 6,
+        "height": "1",
+        "emulateClick": false,
+        "tooltip": "",
+        "color": "#ffffff",
+        "bgcolor": "#24558a",
+        "className": "control-btn",
+        "icon": "",
+        "iconPosition": "left",
+        "payload": "TAKE_CONTROL",
+        "payloadType": "str",
+        "topic": "",
+        "topicType": "str",
+        "buttonColor": "",
+        "textColor": "",
+        "iconColor": "",
+        "enableClick": true,
+        "enablePointerdown": false,
+        "pointerdownPayload": "",
+        "pointerdownPayloadType": "str",
+        "enablePointerup": false,
+        "pointerupPayload": "",
+        "pointerupPayloadType": "str",
+        "x": 340,
+        "y": 480,
+        "wires": [
+            [
+                "84113c3602930104"
+            ]
+        ]
+    },
+    {
+        "id": "4b57637f40a87681",
+        "type": "ui-button",
+        "z": "ee5baa48c91ec01d",
+        "group": "ui_group_controls",
+        "name": "FORWARD",
+        "label": "",
+        "order": 4,
+        "width": "2",
+        "height": "1",
+        "emulateClick": false,
+        "tooltip": "",
+        "color": "#ffffff",
+        "bgcolor": "#276749",
+        "className": "forward-btn",
+        "icon": "arrow-up",
+        "iconPosition": "left",
+        "payload": "FORWARD",
+        "payloadType": "str",
+        "topic": "",
+        "topicType": "str",
+        "buttonColor": "",
+        "textColor": "",
+        "iconColor": "",
+        "enableClick": true,
+        "enablePointerdown": false,
+        "pointerdownPayload": "",
+        "pointerdownPayloadType": "str",
+        "enablePointerup": false,
+        "pointerupPayload": "",
+        "pointerupPayloadType": "str",
+        "x": 290,
+        "y": 520,
+        "wires": [
+            [
+                "84113c3602930104"
+            ]
+        ]
+    },
+    {
+        "id": "3f52ff692aee46e1",
+        "type": "ui-button",
+        "z": "ee5baa48c91ec01d",
+        "group": "ui_group_controls",
+        "name": "REVERSE",
+        "label": "",
+        "order": 12,
+        "width": "2",
+        "height": "1",
+        "emulateClick": false,
+        "tooltip": "",
+        "color": "#ffffff",
+        "bgcolor": "#b45309",
+        "className": "reverse-btn",
+        "icon": "arrow-down",
+        "iconPosition": "left",
+        "payload": "REVERSE",
+        "payloadType": "str",
+        "topic": "",
+        "topicType": "str",
+        "buttonColor": "",
+        "textColor": "",
+        "iconColor": "",
+        "enableClick": true,
+        "enablePointerdown": false,
+        "pointerdownPayload": "",
+        "pointerdownPayloadType": "str",
+        "enablePointerup": false,
+        "pointerupPayload": "",
+        "pointerupPayloadType": "str",
+        "x": 290,
+        "y": 560,
+        "wires": [
+            [
+                "84113c3602930104"
+            ]
+        ]
+    },
+    {
+        "id": "2e5e3ee25d316e33",
+        "type": "ui-button",
+        "z": "ee5baa48c91ec01d",
+        "group": "ui_group_controls",
+        "name": "STOP",
+        "label": "",
+        "order": 8,
+        "width": "2",
+        "height": "1",
+        "emulateClick": false,
+        "tooltip": "",
+        "color": "#ffffff",
+        "bgcolor": "#b91c1c",
+        "className": "stop-btn",
+        "icon": "alert-octagon",
+        "iconPosition": "left",
+        "payload": "STOP",
+        "payloadType": "str",
+        "topic": "",
+        "topicType": "str",
+        "buttonColor": "",
+        "textColor": "",
+        "iconColor": "",
+        "enableClick": true,
+        "enablePointerdown": false,
+        "pointerdownPayload": "",
+        "pointerdownPayloadType": "str",
+        "enablePointerup": false,
+        "pointerupPayload": "",
+        "pointerupPayloadType": "str",
+        "x": 270,
+        "y": 680,
+        "wires": [
+            [
+                "84113c3602930104"
+            ]
+        ]
+    },
+    {
+        "id": "a2bb666d06e641f8",
+        "type": "ui-button",
+        "z": "ee5baa48c91ec01d",
+        "group": "ui_group_controls",
+        "name": "RELEASE TO AUTO",
+        "label": "RELEASE TO AUTO",
+        "order": 14,
+        "width": 6,
+        "height": "1",
+        "emulateClick": false,
+        "tooltip": "",
+        "color": "#ffffff",
+        "bgcolor": "#495563",
+        "className": "control-btn",
+        "icon": "",
+        "iconPosition": "left",
+        "payload": "RELEASE_CONTROL",
+        "payloadType": "str",
+        "topic": "",
+        "topicType": "str",
+        "buttonColor": "",
+        "textColor": "",
+        "iconColor": "",
+        "enableClick": true,
+        "enablePointerdown": false,
+        "pointerdownPayload": "",
+        "pointerdownPayloadType": "str",
+        "enablePointerup": false,
+        "pointerupPayload": "",
+        "pointerupPayloadType": "str",
+        "x": 320,
+        "y": 720,
+        "wires": [
+            [
+                "84113c3602930104"
+            ]
+        ]
+    },
+    {
+        "id": "84113c3602930104",
+        "type": "function",
+        "z": "ee5baa48c91ec01d",
+        "name": "Format MQTT command",
+        "func": "// The P1AM firmware reads commands with readStringUntil('\\n').\nconst allowed = new Set(['TAKE_CONTROL', 'FORWARD', 'REVERSE', 'TURN', 'TURN_RIGHT',\n                         'SHARP_TURN', 'SHARP_TURN_RIGHT', 'STOP', 'SET_SPEED',\n                         'GO_DESTINATION_1', 'GO_DESTINATION_2', 'GO_DESTINATION_3',\n                         'GO_DESTINATION_4', 'GO_DESTINATION_5', 'GO_DESTINATION_6',\n                         'RELEASE_CONTROL']);\n\nconst command = String(msg.payload || '').trim().toUpperCase();\n\nif (!allowed.has(command)) {\n      node.warn('Blocked unknown robot command: ' + command);\n      return null;\n}\n\nmsg.payload = command + '\\n';\nmsg.topic = command;\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 610,
+        "y": 580,
+        "wires": [
+            [
+                "4e0bd2a2a1e84b2f"
+            ]
+        ]
+    },
+    {
+        "id": "8f3ad8ae93c85365",
+        "type": "function",
+        "z": "ee5baa48c91ec01d",
+        "name": "Format SER9 response",
+        "func": "const response = (msg.payload === undefined || msg.payload === null) ? '' : String(msg.payload).trim();\nmsg.payload = response || 'No response received — check TCP connection and controller.';\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1510,
+        "y": 520,
+        "wires": [
+            [
+                "03a6fae781f9f73b"
+            ]
+        ]
+    },
+    {
+        "id": "03a6fae781f9f73b",
+        "type": "ui-text",
+        "z": "ee5baa48c91ec01d",
+        "group": "ui_group_status",
+        "order": 2,
+        "width": "6",
+        "height": "1",
+        "name": "Ser9 Response",
+        "label": "Latest controller response: ",
+        "layout": "",
+        "style": false,
+        "font": "",
+        "fontSize": "",
+        "color": "#000000",
+        "wrapText": false,
+        "className": "plc-response",
+        "value": "payload",
+        "valueType": "msg",
+        "x": 1720,
+        "y": 520,
+        "wires": []
+    },
+    {
+        "id": "4df3f3ac1a857543",
+        "type": "debug",
+        "z": "ee5baa48c91ec01d",
+        "name": "SER9 MQTT response (debug)",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1530,
+        "y": 580,
+        "wires": []
+    },
+    {
+        "id": "e8004d6c147a853a",
+        "type": "comment",
+        "z": "ee5baa48c91ec01d",
+        "name": "SAFETY / commissioning notes",
+        "info": "This flow is an example integration and must be tested with the motors mechanically disabled or safely isolated first. \nThe dashboard STOP button is NOT an emergency stop. Keep a hardwired safety circuit. In the supplied Arduino code, \nhandleTCPClient() blocks in a while(client.connected()) loop, which can delay polling the physical stop/E-stop \ninputs while connected. Fix that firmware behavior before live operation. The RELEASE_TO_AUTO command switches \nto AUTO_CYCLE in the supplied code; verify this behavior is intended before using the button. TCP request behavior \nand response timeout must be verified against your installed Node-RED version and P1AM firmware.",
+        "x": 790,
+        "y": 680,
+        "wires": []
+    },
+    {
+        "id": "3172e0c3d8f148de",
+        "type": "ui-button",
+        "z": "ee5baa48c91ec01d",
+        "group": "ui_group_home",
+        "name": "MANUAL CONTROL",
+        "label": "Manual Control",
+        "order": 2,
+        "width": "2",
+        "height": "1",
+        "emulateClick": false,
+        "tooltip": "",
+        "color": "",
+        "bgcolor": "",
+        "className": "manual-control-btn",
+        "icon": "controller",
+        "iconPosition": "left",
+        "payload": "",
+        "payloadType": "str",
+        "topic": "topic",
+        "topicType": "msg",
+        "buttonColor": "",
+        "textColor": "",
+        "iconColor": "",
+        "enableClick": true,
+        "enablePointerdown": false,
+        "pointerdownPayload": "",
+        "pointerdownPayloadType": "str",
+        "enablePointerup": false,
+        "pointerupPayload": "",
+        "pointerupPayloadType": "str",
+        "x": 320,
+        "y": 240,
+        "wires": [
+            [
+                "cbb33a63e7ab0ab6"
+            ]
+        ]
+    },
+    {
+        "id": "494e70966f6d15a7",
+        "type": "ui-template",
+        "z": "ee5baa48c91ec01d",
+        "group": "",
+        "page": "",
+        "ui": "ui_base_robot",
+        "name": "Styling for all pages",
+        "order": 0,
+        "width": 0,
+        "height": 0,
+        "head": "",
+        "format": "\n/* =================================\n   INDUSTRIAL ROBOT CONTROL THEME\n   ================================= */\n\n:root {\n    --robot-bg: #111827;\n    --robot-panel: #1f2937;\n    --robot-border: #374151;\n    --robot-text: #f3f4f6;\n    --robot-muted: #9ca3af;\n    --robot-green: #16a34a;\n    --robot-red: #dc2626;\n    --robot-blue: #2563eb;\n}\n\n/* Main page background */\n.v-main {\n    background: var(--robot-bg) !important;\n    color: var(--robot-text);\n}\n\n/* Dashboard group panels */\n.nrdb-ui-group {\n    overflow: hidden;\n}\n\n/* Panel headings */\n.nrdb-ui-group .v-card-title {\n    color: var(--robot-text);\n    font-weight: 700;\n    letter-spacing: 0.04em;\n}\n\n/* Standard dashboard buttons */\n.nrdb-ui-button .v-btn {\n    min-height: 54px;\n    border-radius: 9px !important;\n    font-size: 15px;\n    font-weight: 700;\n    letter-spacing: 0.04em;\n    text-transform: uppercase;\n    transition: filter 0.15s ease;\n}\n\n/* Subtle hover feedback */\n.nrdb-ui-button .v-btn:hover {\n    filter: brightness(1.15);\n}\n\n/* Inputs and sliders */\n.nrdb-ui-slider,\n.nrdb-ui-text-input,\n.nrdb-ui-numeric-input {\n    color: var(--robot-text);\n}\n\n/* Consistent spacing */\n.nrdb-ui-group .v-card-text {\n    padding: 16px;\n}\n\n/* Make controls easier to use on touchscreens */\n@media (pointer: coarse) {\n    .nrdb-ui-button .v-btn {\n        min-height: 64px;\n        font-size: 17px;\n    }\n}\n",
+        "noerr": 0,
+        "storeOutMessages": true,
+        "passthru": true,
+        "resendOnRefresh": true,
+        "templateScope": "site:style",
+        "className": "",
+        "x": 310,
+        "y": 120,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "9686ae1ae7da347b",
+        "type": "ui-button",
+        "z": "ee5baa48c91ec01d",
+        "group": "ui_group_controls",
+        "name": "LEFT",
+        "label": "",
+        "order": 7,
+        "width": "1",
+        "height": "1",
+        "emulateClick": false,
+        "tooltip": "",
+        "color": "",
+        "bgcolor": "",
+        "className": "turn-btn",
+        "icon": "arrow-left",
+        "iconPosition": "right",
+        "payload": "TURN",
+        "payloadType": "str",
+        "topic": "topic",
+        "topicType": "msg",
+        "buttonColor": "",
+        "textColor": "",
+        "iconColor": "",
+        "enableClick": true,
+        "enablePointerdown": false,
+        "pointerdownPayload": "",
+        "pointerdownPayloadType": "str",
+        "enablePointerup": false,
+        "pointerupPayload": "",
+        "pointerupPayloadType": "str",
+        "x": 270,
+        "y": 600,
+        "wires": [
+            [
+                "84113c3602930104"
+            ]
+        ]
+    },
+    {
+        "id": "d7b64b794f3806e0",
+        "type": "ui-button",
+        "z": "ee5baa48c91ec01d",
+        "group": "ui_group_controls",
+        "name": "RIGHT",
+        "label": "",
+        "order": 9,
+        "width": "1",
+        "height": "1",
+        "emulateClick": false,
+        "tooltip": "",
+        "color": "",
+        "bgcolor": "",
+        "className": "turn-btn",
+        "icon": "arrow-right",
+        "iconPosition": "left",
+        "payload": "TURN_RIGHT",
+        "payloadType": "str",
+        "topic": "topic",
+        "topicType": "msg",
+        "buttonColor": "",
+        "textColor": "",
+        "iconColor": "",
+        "enableClick": true,
+        "enablePointerdown": false,
+        "pointerdownPayload": "",
+        "pointerdownPayloadType": "str",
+        "enablePointerup": false,
+        "pointerupPayload": "",
+        "pointerupPayloadType": "str",
+        "x": 280,
+        "y": 640,
+        "wires": [
+            [
+                "84113c3602930104"
+            ]
+        ]
+    },
+    {
+        "id": "700dde97a93e3f89",
+        "type": "ui-button",
+        "z": "ee5baa48c91ec01d",
+        "group": "ui_group_controls",
+        "name": "HOME",
+        "label": "HOME",
+        "order": 16,
+        "width": "2",
+        "height": "1",
+        "emulateClick": false,
+        "tooltip": "",
+        "color": "",
+        "bgcolor": "",
+        "className": "home-btn",
+        "icon": "home",
+        "iconPosition": "left",
+        "payload": "",
+        "payloadType": "str",
+        "topic": "topic",
+        "topicType": "msg",
+        "buttonColor": "",
+        "textColor": "",
+        "iconColor": "",
+        "enableClick": true,
+        "enablePointerdown": false,
+        "pointerdownPayload": "",
+        "pointerdownPayloadType": "str",
+        "enablePointerup": false,
+        "pointerupPayload": "",
+        "pointerupPayloadType": "str",
+        "x": 270,
+        "y": 760,
+        "wires": [
+            [
+                "ae1882e1b82c9c9d"
+            ]
+        ]
+    },
+    {
+        "id": "ae1882e1b82c9c9d",
+        "type": "function",
+        "z": "ee5baa48c91ec01d",
+        "name": "\"Main Menu\"",
+        "func": "msg.payload = \"Main Menu\"\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 410,
+        "y": 760,
+        "wires": [
+            [
+                "4f727b6c1f7e138e"
+            ]
+        ]
+    },
+    {
+        "id": "4f727b6c1f7e138e",
+        "type": "ui-control",
+        "z": "ee5baa48c91ec01d",
+        "name": "",
+        "ui": "ui_base_robot",
+        "events": "all",
+        "x": 560,
+        "y": 760,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "cbb33a63e7ab0ab6",
+        "type": "function",
+        "z": "ee5baa48c91ec01d",
+        "name": "\"Robot Control\"",
+        "func": "msg.payload = \"Robot Control\"\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 540,
+        "y": 240,
+        "wires": [
+            [
+                "f3cd4b425d1c4d95"
+            ]
+        ]
+    },
+    {
+        "id": "f3cd4b425d1c4d95",
+        "type": "ui-control",
+        "z": "ee5baa48c91ec01d",
+        "name": "",
+        "ui": "ui_base_robot",
+        "events": "all",
+        "x": 720,
+        "y": 240,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "998a22801c4a260e",
+        "type": "ui-button",
+        "z": "ee5baa48c91ec01d",
+        "group": "ui_group_home",
+        "name": "AUTONOMOUS",
+        "label": "Autonomous",
+        "order": 3,
+        "width": "2",
+        "height": "1",
+        "emulateClick": false,
+        "tooltip": "",
+        "color": "",
+        "bgcolor": "",
+        "className": "autonomous-btn",
+        "icon": "transit-connection",
+        "iconPosition": "left",
+        "payload": "",
+        "payloadType": "str",
+        "topic": "topic",
+        "topicType": "msg",
+        "buttonColor": "",
+        "textColor": "",
+        "iconColor": "",
+        "enableClick": true,
+        "enablePointerdown": false,
+        "pointerdownPayload": "",
+        "pointerdownPayloadType": "str",
+        "enablePointerup": false,
+        "pointerupPayload": "",
+        "pointerupPayloadType": "str",
+        "x": 300,
+        "y": 280,
+        "wires": [
+            [
+                "c7feabec8a6fef26"
+            ]
+        ]
+    },
+    {
+        "id": "ba30fc8a0480d973",
+        "type": "ui-button",
+        "z": "ee5baa48c91ec01d",
+        "group": "ui_group_home",
+        "name": "SYSTEM STATUS",
+        "label": "SYSTEM STATUS",
+        "order": 5,
+        "width": "2",
+        "height": "1",
+        "emulateClick": false,
+        "tooltip": "",
+        "color": "",
+        "bgcolor": "",
+        "className": "system-status-btn",
+        "icon": "chart-bar",
+        "iconPosition": "left",
+        "payload": "",
+        "payloadType": "str",
+        "topic": "topic",
+        "topicType": "msg",
+        "buttonColor": "",
+        "textColor": "",
+        "iconColor": "",
+        "enableClick": true,
+        "enablePointerdown": false,
+        "pointerdownPayload": "",
+        "pointerdownPayloadType": "str",
+        "enablePointerup": false,
+        "pointerupPayload": "",
+        "pointerupPayloadType": "str",
+        "x": 310,
+        "y": 320,
+        "wires": [
+            [
+                "1af58aef975098c0"
+            ]
+        ]
+    },
+    {
+        "id": "3acb2e80706e7c2e",
+        "type": "ui-button",
+        "z": "ee5baa48c91ec01d",
+        "group": "ui_group_home",
+        "name": "SETTINGS",
+        "label": "SETTINGS",
+        "order": 4,
+        "width": "2",
+        "height": "1",
+        "emulateClick": false,
+        "tooltip": "",
+        "color": "",
+        "bgcolor": "",
+        "className": "settings-btn",
+        "icon": "cog",
+        "iconPosition": "left",
+        "payload": "",
+        "payloadType": "str",
+        "topic": "topic",
+        "topicType": "msg",
+        "buttonColor": "",
+        "textColor": "",
+        "iconColor": "",
+        "enableClick": true,
+        "enablePointerdown": false,
+        "pointerdownPayload": "",
+        "pointerdownPayloadType": "str",
+        "enablePointerup": false,
+        "pointerupPayload": "",
+        "pointerupPayloadType": "str",
+        "x": 290,
+        "y": 360,
+        "wires": [
+            [
+                "ad1020c41340465d"
+            ]
+        ]
+    },
+    {
+        "id": "c7feabec8a6fef26",
+        "type": "function",
+        "z": "ee5baa48c91ec01d",
+        "name": "\"Autonomous\"",
+        "func": "msg.payload = \"Autonomous\"\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 540,
+        "y": 280,
+        "wires": [
+            [
+                "98daef8121a625a7"
+            ]
+        ]
+    },
+    {
+        "id": "98daef8121a625a7",
+        "type": "ui-control",
+        "z": "ee5baa48c91ec01d",
+        "name": "",
+        "ui": "ui_base_robot",
+        "events": "all",
+        "x": 720,
+        "y": 280,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "1af58aef975098c0",
+        "type": "function",
+        "z": "ee5baa48c91ec01d",
+        "name": "\"System Status\"",
+        "func": "msg.payload = \"System Status\"\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 540,
+        "y": 320,
+        "wires": [
+            [
+                "687ebc5eec4de541"
+            ]
+        ]
+    },
+    {
+        "id": "687ebc5eec4de541",
+        "type": "ui-control",
+        "z": "ee5baa48c91ec01d",
+        "name": "",
+        "ui": "ui_base_robot",
+        "events": "all",
+        "x": 720,
+        "y": 320,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "ad1020c41340465d",
+        "type": "function",
+        "z": "ee5baa48c91ec01d",
+        "name": "\"Settings\"",
+        "func": "msg.payload = \"Settings\"\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 520,
+        "y": 360,
+        "wires": [
+            [
+                "65873d7735462d88"
+            ]
+        ]
+    },
+    {
+        "id": "65873d7735462d88",
+        "type": "ui-control",
+        "z": "ee5baa48c91ec01d",
+        "name": "",
+        "ui": "ui_base_robot",
+        "events": "all",
+        "x": 720,
+        "y": 360,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "3716d28ba6bec80c",
+        "type": "ui-template",
+        "z": "ee5baa48c91ec01d",
+        "group": "ui_group_home",
+        "page": "",
+        "ui": "",
+        "name": "Main Menu Styling",
+        "order": 6,
+        "width": "0",
+        "height": "0",
+        "head": "",
+        "format": "<div class=\"robot-divider\"></div>\n\n<div class=\"robot-warning\">\n    <span class=\"warning-icon\">⚠</span>\n    <span>WARNING: Keep clear of robot operating area</span>\n</div>\n\n<style>\n/* Horizontal divider line */\n.robot-divider {\n    width: 100%;\n    height: 1px;\n    background-color: #4b5563;\n    margin: 8px 0;\n}\n\n.manual-control-btn button.v-btn {\n    background-color: rgba(0, 52, 255, 0.4);\n    border: 1px solid rgba(0, 102, 255, 1);\n}\n\n.autonomous-btn button.v-btn{\n    background-color: rgba(0, 90, 4, 0.4);\n    border: 1px solid rgba(0, 130, 4, 1);\n}\n\n.settings-btn button.v-btn {\n    background-color: rgba(0, 255, 255, 0.4);\n    border: 1px solid rgba(0, 255, 255, 1);\n}\n\n.system-status-btn button.v-btn {\n    background-color: rgba(94, 94, 94, 0.4);\n    border: 1px solid rgba(134, 134, 134, 1);\n}\n\n/* Warning strip */\n.robot-warning {\n    display: flex;\n    align-items: center;\n    justify-content: center;\n    gap: 10px;\n    width: 100%;\n    box-sizing: border-box;\n    padding: 12px;\n    background: #451a1a;\n    border: 1px solid #dc2626;\n    border-radius: 6px;\n    color: #fecaca;\n    font-weight: 700;\n    text-align: center;\n}\n\n/* Warning icon */\n.warning-icon {\n    color: #facc15;\n    font-size: 24px;\n}\n</style>",
+        "storeOutMessages": true,
+        "passthru": true,
+        "resendOnRefresh": true,
+        "templateScope": "local",
+        "className": "",
+        "x": 310,
+        "y": 200,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "189f15750e14d222",
+        "type": "ui-template",
+        "z": "ee5baa48c91ec01d",
+        "group": "",
+        "page": "ui_page_robot",
+        "ui": "",
+        "name": "Robot Control Styling",
+        "order": 1,
+        "width": 0,
+        "height": 0,
+        "head": "",
+        "format": "/* STOP button — high visibility */\n.stop-btn .v-btn {\n    background-color:  rgba(255, 0, 0, 0.8);\n    border: 1px solid rgba(255, 150, 150, 1)  \n}\n\n/* Movement buttons */\n.forward-btn .v-btn,\n.reverse-btn .v-btn {\n    background: rgba(0, 255, 68, 0.4);\n    border: 1px solid rgba(0, 255, 68, 1);\n}\n\n/* Turning buttons */\n.turn-btn .v-btn {\n    background-color: rgba(0, 113, 68, 0.4);\n    border: 1px solid rgba(0, 150, 68, 1);\n}\n\n.control-btn .v-btn {\n    background-color: rgba(0, 150, 255, 0.4);\n    border: 1px solid rgba(0, 150, 255, 1);\n}\n\n.home-btn .v-btn{\n    background-color: rgba(51, 78, 104, 0.75);\n    border: 1px solid rgba(100, 160, 210, 1);\n}",
+        "noerr": 0,
+        "storeOutMessages": true,
+        "passthru": true,
+        "resendOnRefresh": true,
+        "templateScope": "page:style",
+        "className": "",
+        "x": 320,
+        "y": 440,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "712f901f132f2748",
+        "type": "ui-template",
+        "z": "ee5baa48c91ec01d",
+        "group": "ae3f045a2bbe571b",
+        "page": "",
+        "ui": "",
+        "name": "Autonomous Placeholder",
+        "order": 2,
+        "width": "6",
+        "height": "2",
+        "head": "",
+        "format": "<div class=\"placeholder-page\"><h2>Autonomous Mode</h2><p>This page is reserved for autonomous route selection and navigation controls.</p></div><style>.placeholder-page{padding:24px;color:#f3f4f6;text-align:center}.placeholder-page p{color:#9ca3af}</style>",
+        "storeOutMessages": true,
+        "passthru": true,
+        "resendOnRefresh": true,
+        "templateScope": "local",
+        "className": "",
+        "x": 320,
+        "y": 820,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "cef1ad1c28523d11",
+        "type": "ui-button",
+        "z": "ee5baa48c91ec01d",
+        "group": "ae3f045a2bbe571b",
+        "name": "AUTONOMOUS HOME",
+        "label": "HOME",
+        "order": 3,
+        "width": "2",
+        "height": "1",
+        "emulateClick": false,
+        "tooltip": "Return to Main Menu",
+        "color": "",
+        "bgcolor": "",
+        "className": "home-btn",
+        "icon": "home",
+        "iconPosition": "left",
+        "payload": "",
+        "payloadType": "str",
+        "topic": "topic",
+        "topicType": "msg",
+        "buttonColor": "",
+        "textColor": "",
+        "iconColor": "",
+        "enableClick": true,
+        "enablePointerdown": false,
+        "pointerdownPayload": "",
+        "pointerdownPayloadType": "str",
+        "enablePointerup": false,
+        "pointerupPayload": "",
+        "pointerupPayloadType": "str",
+        "x": 320,
+        "y": 860,
+        "wires": [
+            [
+                "3236a62694651f7b"
+            ]
+        ]
+    },
+    {
+        "id": "3236a62694651f7b",
+        "type": "function",
+        "z": "ee5baa48c91ec01d",
+        "name": "Autonomous Main Menu",
+        "func": "msg.payload = \"Main Menu\";\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 570,
+        "y": 860,
+        "wires": [
+            [
+                "e2966a187baf78c2"
+            ]
+        ]
+    },
+    {
+        "id": "e2966a187baf78c2",
+        "type": "ui-control",
+        "z": "ee5baa48c91ec01d",
+        "name": "",
+        "ui": "ui_base_robot",
+        "events": "all",
+        "x": 760,
+        "y": 860,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "0a66405851a12839",
+        "type": "ui-template",
+        "z": "ee5baa48c91ec01d",
+        "group": "f1510818c1243c7a",
+        "page": "",
+        "ui": "",
+        "name": "System Status Placeholder",
+        "order": 2,
+        "width": "6",
+        "height": "2",
+        "head": "",
+        "format": "<div class=\"placeholder-page\"><h2>System Status</h2><p>This page is reserved for robot and controller health information.</p></div><style>.placeholder-page{padding:24px;color:#f3f4f6;text-align:center}.placeholder-page p{color:#9ca3af}</style>",
+        "storeOutMessages": true,
+        "passthru": true,
+        "resendOnRefresh": true,
+        "templateScope": "local",
+        "className": "",
+        "x": 320,
+        "y": 940,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "bd566204f9ceb462",
+        "type": "ui-button",
+        "z": "ee5baa48c91ec01d",
+        "group": "f1510818c1243c7a",
+        "name": "STATUS HOME",
+        "label": "HOME",
+        "order": 3,
+        "width": "2",
+        "height": "1",
+        "emulateClick": false,
+        "className": "home-btn",
+        "icon": "home",
+        "iconPosition": "left",
+        "payload": "",
+        "payloadType": "str",
+        "topic": "topic",
+        "topicType": "msg",
+        "buttonColor": "",
+        "textColor": "",
+        "iconColor": "",
+        "enableClick": true,
+        "enablePointerdown": false,
+        "pointerdownPayload": "",
+        "pointerdownPayloadType": "str",
+        "enablePointerup": false,
+        "pointerupPayload": "",
+        "pointerupPayloadType": "str",
+        "x": 320,
+        "y": 980,
+        "wires": [
+            [
+                "0d6fd08d343baf3e"
+            ]
+        ]
+    },
+    {
+        "id": "0d6fd08d343baf3e",
+        "type": "function",
+        "z": "ee5baa48c91ec01d",
+        "name": "Status Main Menu",
+        "func": "msg.payload = \"Main Menu\";\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "x": 520,
+        "y": 980,
+        "wires": [
+            [
+                "12c961c4858fd840"
+            ]
+        ]
+    },
+    {
+        "id": "12c961c4858fd840",
+        "type": "ui-control",
+        "z": "ee5baa48c91ec01d",
+        "name": "",
+        "ui": "ui_base_robot",
+        "events": "all",
+        "x": 700,
+        "y": 980,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "02249ac174fdfa9f",
+        "type": "ui-template",
+        "z": "ee5baa48c91ec01d",
+        "group": "e99e0752f6faf15b",
+        "page": "",
+        "ui": "",
+        "name": "Settings Placeholder",
+        "order": 2,
+        "width": "6",
+        "height": "2",
+        "head": "",
+        "format": "<div class=\"placeholder-page\"><h2>Settings</h2><p>This page is reserved for operator preferences and robot configuration.</p></div><style>.placeholder-page{padding:24px;color:#f3f4f6;text-align:center}.placeholder-page p{color:#9ca3af}</style>",
+        "storeOutMessages": true,
+        "passthru": true,
+        "resendOnRefresh": true,
+        "templateScope": "local",
+        "className": "",
+        "x": 320,
+        "y": 1060,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "0289d81c946674ec",
+        "type": "ui-button",
+        "z": "ee5baa48c91ec01d",
+        "group": "e99e0752f6faf15b",
+        "name": "SETTINGS HOME",
+        "label": "HOME",
+        "order": 3,
+        "width": "2",
+        "height": "1",
+        "className": "home-btn",
+        "icon": "home",
+        "iconPosition": "left",
+        "payload": "",
+        "payloadType": "str",
+        "topic": "topic",
+        "topicType": "msg",
+        "enableClick": true,
+        "x": 320,
+        "y": 1100,
+        "wires": [
+            [
+                "b586d3d10ec3a1f0"
+            ]
+        ]
+    },
+    {
+        "id": "b586d3d10ec3a1f0",
+        "type": "function",
+        "z": "ee5baa48c91ec01d",
+        "name": "Settings Main Menu",
+        "func": "msg.payload = \"Main Menu\";\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "x": 520,
+        "y": 1100,
+        "wires": [
+            [
+                "e6e332d58ac3deb1"
+            ]
+        ]
+    },
+    {
+        "id": "e6e332d58ac3deb1",
+        "type": "ui-control",
+        "z": "ee5baa48c91ec01d",
+        "name": "",
+        "ui": "ui_base_robot",
+        "events": "all",
+        "x": 700,
+        "y": 1100,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "4e0bd2a2a1e84b2f",
+        "type": "mqtt out",
+        "z": "ee5baa48c91ec01d",
+        "name": "",
+        "topic": "tourbot/dashboard/manualControl",
+        "qos": "1",
+        "retain": "true",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "7cb6453c5e503a9e",
+        "x": 900,
+        "y": 580,
+        "wires": []
+    },
+    {
+        "id": "cd0dbc8496b5ca77",
+        "type": "mqtt in",
+        "z": "ee5baa48c91ec01d",
+        "name": "",
+        "topic": "tourbot/dashboard/pcResponse",
+        "qos": "1",
+        "datatype": "auto-detect",
+        "broker": "7cb6453c5e503a9e",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 1210,
+        "y": 580,
+        "wires": [
+            [
+                "8f3ad8ae93c85365",
+                "4df3f3ac1a857543"
+            ]
+        ]
+    },
+    {
+        "id": "ui_group_controls",
+        "type": "ui-group",
+        "name": "Manual Controls - For Motor Testing",
+        "page": "ui_page_robot",
+        "width": "6",
+        "height": "4",
+        "order": 1,
+        "showTitle": true,
+        "className": "",
+        "visible": "true",
+        "disabled": "false",
+        "groupType": "default",
+        "tab": ""
+    },
+    {
+        "id": "ui_group_status",
+        "type": "ui-group",
+        "name": "SER9 Response",
+        "page": "ui_page_robot",
+        "width": "6",
+        "height": "2",
+        "order": 2,
+        "showTitle": true,
+        "className": "",
+        "visible": "true",
+        "disabled": "false",
+        "groupType": "default",
+        "tab": ""
+    },
+    {
+        "id": "ui_group_home",
+        "type": "ui-group",
+        "name": "Operator Menu",
+        "page": "ui_page_home",
+        "width": "4",
+        "height": "4",
+        "order": 1,
+        "showTitle": false,
+        "className": "robot-home-menu",
+        "visible": "true",
+        "disabled": false,
+        "groupType": "default",
+        "tab": ""
+    },
+    {
+        "id": "ui_base_robot",
+        "type": "ui-base",
+        "name": "Robot Dashboard",
+        "path": "/dashboard",
+        "appIcon": "",
+        "includeClientData": true,
+        "acceptsClientConfig": [
+            "ui-notification",
+            "ui-control"
+        ],
+        "showPathInSidebar": false,
+        "headerContent": "page",
+        "navigationStyle": "default",
+        "titleBarStyle": "default",
+        "showReconnectNotification": true,
+        "notificationDisplayTime": 1,
+        "showDisconnectNotification": true,
+        "allowInstall": false
+    },
+    {
+        "id": "ui_page_robot",
+        "type": "ui-page",
+        "name": "Robot Control",
+        "ui": "ui_base_robot",
+        "path": "/manual_controls",
+        "icon": "home",
+        "layout": "grid",
+        "theme": "ui_theme_robot",
+        "breakpoints": [
+            {
+                "name": "Default",
+                "px": "0",
+                "cols": "6"
+            },
+            {
+                "name": "Tablet",
+                "px": "640",
+                "cols": "8"
+            },
+            {
+                "name": "Desktop",
+                "px": "1024",
+                "cols": "12"
+            }
+        ],
+        "tabs": [],
+        "order": 2,
+        "className": "",
+        "visible": "true",
+        "disabled": "false"
+    },
+    {
+        "id": "ae3f045a2bbe571b",
+        "type": "ui-group",
+        "name": "Autonomous",
+        "page": "d42a329cdaa9ce12",
+        "width": "6",
+        "height": "4",
+        "order": 1,
+        "showTitle": true,
+        "className": "",
+        "visible": "true",
+        "disabled": "false",
+        "groupType": "default",
+        "tab": ""
+    },
+    {
+        "id": "f1510818c1243c7a",
+        "type": "ui-group",
+        "name": "System Status",
+        "page": "a14759b09ac477be",
+        "width": "6",
+        "height": "4",
+        "order": 1,
+        "showTitle": true,
+        "className": "",
+        "visible": "true",
+        "disabled": "false",
+        "groupType": "default",
+        "tab": ""
+    },
+    {
+        "id": "e99e0752f6faf15b",
+        "type": "ui-group",
+        "name": "Settings",
+        "page": "e76c9b944abdbe0c",
+        "width": "6",
+        "height": "4",
+        "order": 1,
+        "showTitle": true,
+        "className": "",
+        "visible": "true",
+        "disabled": "false",
+        "groupType": "default",
+        "tab": ""
+    },
+    {
+        "id": "7cb6453c5e503a9e",
+        "type": "mqtt-broker",
+        "name": "",
+        "broker": "localhost",
+        "port": 1883,
+        "clientid": "",
+        "autoConnect": true,
+        "usetls": false,
+        "protocolVersion": 4,
+        "keepalive": 60,
+        "cleansession": true,
+        "autoUnsubscribe": true,
+        "birthTopic": "",
+        "birthQos": "0",
+        "birthRetain": "false",
+        "birthPayload": "",
+        "birthMsg": {},
+        "closeTopic": "",
+        "closeQos": "0",
+        "closeRetain": "false",
+        "closePayload": "",
+        "closeMsg": {},
+        "willTopic": "",
+        "willQos": "0",
+        "willRetain": "false",
+        "willPayload": "",
+        "willMsg": {},
+        "userProps": "",
+        "sessionExpiry": ""
+    },
+    {
+        "id": "ui_page_home",
+        "type": "ui-page",
+        "name": "Main Menu",
+        "ui": "ui_base_robot",
+        "path": "/home",
+        "icon": "home",
+        "layout": "notebook",
+        "theme": "ui_theme_robot",
+        "breakpoints": [
+            {
+                "name": "Default",
+                "px": "0",
+                "cols": "6"
+            },
+            {
+                "name": "Tablet",
+                "px": "640",
+                "cols": "8"
+            },
+            {
+                "name": "Desktop",
+                "px": "1024",
+                "cols": "12"
+            }
+        ],
+        "tabs": [],
+        "order": 1,
+        "className": "",
+        "visible": true,
+        "disabled": false
+    },
+    {
+        "id": "ui_theme_robot",
+        "type": "ui-theme",
+        "name": "Robot Theme",
+        "colors": {
+            "surface": "#18191b",
+            "primary": "#0d74ce",
+            "bgPage": "#111113",
+            "groupBg": "#212225",
+            "groupOutline": "#363a3f"
+        },
+        "sizes": {
+            "density": "default",
+            "pagePadding": "12px",
+            "groupGap": "12px",
+            "groupBorderRadius": "4px",
+            "widgetGap": "12px"
+        }
+    },
+    {
+        "id": "d42a329cdaa9ce12",
+        "type": "ui-page",
+        "name": "Autonomous",
+        "ui": "ui_base_robot",
+        "path": "/autonomous",
+        "icon": "transit-connection",
+        "layout": "grid",
+        "theme": "ui_theme_robot",
+        "breakpoints": [
+            {
+                "name": "Default",
+                "px": "0",
+                "cols": "6"
+            },
+            {
+                "name": "Tablet",
+                "px": "640",
+                "cols": "8"
+            },
+            {
+                "name": "Desktop",
+                "px": "1024",
+                "cols": "12"
+            }
+        ],
+        "tabs": [],
+        "order": 3,
+        "className": "",
+        "visible": true,
+        "disabled": false
+    },
+    {
+        "id": "a14759b09ac477be",
+        "type": "ui-page",
+        "name": "System Status",
+        "ui": "ui_base_robot",
+        "path": "/system-status",
+        "icon": "chart-bar",
+        "layout": "grid",
+        "theme": "ui_theme_robot",
+        "breakpoints": [
+            {
+                "name": "Default",
+                "px": "0",
+                "cols": "6"
+            },
+            {
+                "name": "Tablet",
+                "px": "640",
+                "cols": "8"
+            },
+            {
+                "name": "Desktop",
+                "px": "1024",
+                "cols": "12"
+            }
+        ],
+        "tabs": [],
+        "order": 4,
+        "className": "",
+        "visible": true,
+        "disabled": false
+    },
+    {
+        "id": "e76c9b944abdbe0c",
+        "type": "ui-page",
+        "name": "Settings",
+        "ui": "ui_base_robot",
+        "path": "/settings",
+        "icon": "cog",
+        "layout": "grid",
+        "theme": "ui_theme_robot",
+        "breakpoints": [
+            {
+                "name": "Default",
+                "px": "0",
+                "cols": "6"
+            },
+            {
+                "name": "Tablet",
+                "px": "640",
+                "cols": "8"
+            },
+            {
+                "name": "Desktop",
+                "px": "1024",
+                "cols": "12"
+            }
+        ],
+        "tabs": [],
+        "order": 5,
+        "className": "",
+        "visible": true,
+        "disabled": false
+    },
+    {
+        "id": "43db17d263748350",
+        "type": "global-config",
+        "env": [],
+        "modules": {
+            "@flowfuse/node-red-dashboard": "1.34.0"
+        }
+    }
+]
